@@ -8,6 +8,8 @@ import {
   emitSessionStatus,
   emitToUser,
 } from '../../lib/realtime';
+import { lockedTx } from '../../lib/prisma';
+import { serializeByKey } from '../../lib/serialize';
 import { applyShareChange } from '../payments/payment.service';
 import { sessionInclude, toSummary } from './session.mapper';
 import type { SessionCtx } from './session.service';
@@ -23,6 +25,15 @@ function nextSlot(used: Array<number | null>, capacity: number): number {
 }
 
 export async function joinSession(ctx: SessionCtx, sessionId: string, userId: string, expectedVersion?: number) {
+  return serializeByKey(`session:${sessionId}`, () => joinSessionExclusive(ctx, sessionId, userId, expectedVersion));
+}
+
+async function joinSessionExclusive(
+  ctx: SessionCtx,
+  sessionId: string,
+  userId: string,
+  expectedVersion?: number,
+) {
   const now = ctx.now();
   const result = await ctx.db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM sessions WHERE id = ${sessionId} FOR UPDATE`;
@@ -159,7 +170,7 @@ export async function joinSession(ctx: SessionCtx, sessionId: string, userId: st
           }
         : null,
     };
-  });
+  }, lockedTx);
   emitSessionAvailability(result.summary);
   emitSessionStatus(result.summary);
   emitParticipantJoined(result.summary.id, userId, result.summary.version);
@@ -170,6 +181,15 @@ export async function joinSession(ctx: SessionCtx, sessionId: string, userId: st
 }
 
 export async function leaveSession(ctx: SessionCtx, sessionId: string, userId: string, reason: 'LEFT' | 'PRICE_REJECTED' | 'PRICE_NOT_ACCEPTED' = 'LEFT') {
+  return serializeByKey(`session:${sessionId}`, () => leaveSessionExclusive(ctx, sessionId, userId, reason));
+}
+
+async function leaveSessionExclusive(
+  ctx: SessionCtx,
+  sessionId: string,
+  userId: string,
+  reason: 'LEFT' | 'PRICE_REJECTED' | 'PRICE_NOT_ACCEPTED',
+) {
   const now = ctx.now();
   const summary = await ctx.db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM sessions WHERE id = ${sessionId} FOR UPDATE`;
@@ -215,7 +235,7 @@ export async function leaveSession(ctx: SessionCtx, sessionId: string, userId: s
       });
     }
     return toSummary(updated, now);
-  });
+  }, lockedTx);
   emitSessionAvailability(summary);
   emitSessionStatus(summary);
   emitParticipantLeft(summary.id, userId, summary.version);
@@ -224,6 +244,17 @@ export async function leaveSession(ctx: SessionCtx, sessionId: string, userId: s
 }
 
 export async function removeParticipant(ctx: SessionCtx, sessionId: string, organiserId: string, targetUserId: string) {
+  return serializeByKey(`session:${sessionId}`, () =>
+    removeParticipantExclusive(ctx, sessionId, organiserId, targetUserId),
+  );
+}
+
+async function removeParticipantExclusive(
+  ctx: SessionCtx,
+  sessionId: string,
+  organiserId: string,
+  targetUserId: string,
+) {
   const now = ctx.now();
   return ctx.db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM sessions WHERE id = ${sessionId} FOR UPDATE`;
@@ -259,7 +290,7 @@ export async function removeParticipant(ctx: SessionCtx, sessionId: string, orga
       sessionId,
       actorId: organiserId,
     });
-  });
+  }, lockedTx);
 }
 
 export async function toggleInterest(ctx: SessionCtx, sessionId: string, userId: string, interested: boolean) {

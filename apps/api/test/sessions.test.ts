@@ -263,6 +263,10 @@ describe.skipIf(!dbUp)('sessions', () => {
       ),
     );
     const ok = results.filter((res) => res.status === 201);
+    const failed = results
+      .filter((res) => res.status !== 201)
+      .map((res) => ({ status: res.status, code: res.body?.error?.code ?? res.body?.message }));
+    expect(failed, JSON.stringify(failed.slice(0, 8))).toEqual([]);
     const slots = ok.map((res) => res.body.data.participant.shareSlot as number);
     expect(ok).toHaveLength(50);
     expect(new Set(slots).size).toBe(50);

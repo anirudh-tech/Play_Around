@@ -3,6 +3,9 @@ import { PrismaClient } from '../generated/prisma/client';
 
 export type Database = PrismaClient;
 
+/** Row-lock transactions (join/leave) wait in the pool while other requests hold FOR UPDATE. */
+export const lockedTx = { maxWait: 30_000, timeout: 30_000 } as const;
+
 export function createPrismaClient(databaseUrl: string): Database {
   const url = new URL(databaseUrl);
   const adapter = new PrismaMariaDb({
@@ -11,9 +14,9 @@ export function createPrismaClient(databaseUrl: string): Database {
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     database: url.pathname.replace(/^\//, ''),
-    connectionLimit: 10,
-    connectTimeout: 2_000,
-    acquireTimeout: 2_000,
+    connectionLimit: 16,
+    connectTimeout: 10_000,
+    acquireTimeout: 30_000,
   });
   return new PrismaClient({ adapter });
 }
