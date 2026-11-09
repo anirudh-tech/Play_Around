@@ -1,0 +1,19 @@
+{
+  "name": "@playaround/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node -e \"console.log('Playwright skipped in turbo test. With API/web/admin up: pnpm test:e2e')\"",
+    "test:playwright": "playwright test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playaround/config": "workspace:*",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.14.0",
+    "typescript": "6.0.3"
+  }
+}

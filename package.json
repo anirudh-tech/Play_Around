@@ -1,0 +1,35 @@
+{
+  "name": "playaround",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=26.13.0 <27",
+    "pnpm": ">=12"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:api": "turbo run dev --filter=@playaround/api",
+    "dev:web": "turbo run dev --filter=@playaround/web",
+    "dev:admin": "turbo run dev --filter=@playaround/admin",
+    "dev:mobile": "turbo run dev --filter=@playaround/mobile",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "pnpm --filter @playaround/e2e test:playwright",
+    "test:coverage": "pnpm --filter @playaround/api test:coverage",
+    "secrets:scan": "node infrastructure/security/scan-secrets.mjs",
+    "audit": "pnpm audit --prod",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose -f infrastructure/docker/docker-compose.yml up -d",
+    "db:down": "docker compose -f infrastructure/docker/docker-compose.yml down",
+    "db:migrate": "pnpm --filter @playaround/api db:migrate",
+    "db:seed": "pnpm --filter @playaround/api db:seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.11.10",
+    "typescript": "6.0.3"
+  }
+}

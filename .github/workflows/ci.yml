@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+      EXPO_NO_TELEMETRY: '1'
+      DATABASE_URL: mysql://playaround:playaround@127.0.0.1:3306/playaround_test
+      TEST_DATABASE_URL: mysql://playaround:playaround@127.0.0.1:3306/playaround_test
+      JWT_SECRET: ci-only-change-me-jwt-secret-32ch
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: playaround_test
+          MYSQL_USER: playaround
+          MYSQL_PASSWORD: playaround
+          MYSQL_ROOT_PASSWORD: playaround-root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uplayaround -pplayaround"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Migrate test database
+        run: pnpm --filter @playaround/api exec prisma migrate deploy
+
+      - name: Lint, typecheck, test, build
+        run: pnpm exec turbo run lint typecheck test build

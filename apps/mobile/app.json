@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "PlayAround",
+    "slug": "playaround",
+    "scheme": "playaround",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "app.playaround.mobile",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "app.playaround.mobile",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": ["expo-router", "expo-status-bar", "expo-font"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

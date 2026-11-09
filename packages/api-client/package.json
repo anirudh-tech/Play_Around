@@ -1,0 +1,35 @@
+{
+  "name": "@playaround/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@playaround/contracts": "workspace:*",
+    "@tanstack/react-query": "^5.90.10",
+    "react": "^19.3.1",
+    "socket.io-client": "^4.8.1",
+    "zod": "^4.6.7"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@playaround/config": "workspace:*",
+    "@tanstack/react-query": "^5.90.10",
+    "@types/react": "^19.2.6",
+    "eslint": "^10.14.0",
+    "react": "^19.3.1",
+    "typescript": "6.0.3",
+    "vitest": "^5.1.0"
+  }
+}

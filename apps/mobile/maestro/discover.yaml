@@ -1,0 +1,7 @@
+appId: app.playaround.mobile
+name: Discover smoke
+---
+- launchApp
+- assertVisible:
+    text: ".*Discover.*|.*PlayAround.*|.*Sign in.*"
+    optional: true

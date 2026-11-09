@@ -1,0 +1,23 @@
+{
+  "name": "@playaround/design-tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts",
+    "./theme.css": "./dist/theme.css",
+    "./nativewind-preset": "./dist/nativewind-preset.cjs"
+  },
+  "scripts": {
+    "build": "node scripts/build.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playaround/config": "workspace:*",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.14.0",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@import '@playaround/design-tokens/theme.css';
+
+@layer base {
+  body {
+    background: var(--pa-background);
+    color: var(--pa-text);
+    font-family: var(--font-sans);
+  }
+}
+
+@utility glass {
+  background: var(--pa-glass);
+  border: 1px solid var(--pa-glass-border);
+  backdrop-filter: blur(var(--blur-glass-md)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--blur-glass-md)) saturate(160%);
+}
