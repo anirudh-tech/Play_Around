@@ -26,7 +26,9 @@ export default function VerifyScreen() {
   return (
     <Screen>
       <Title>Verify email</Title>
-      <Muted>Enter the 6-digit code from Mailpit (local) or your inbox.</Muted>
+      <Muted>
+        We emailed a 6-digit code to the address you signed up with. Check spam if you do not see “Your PlayAround signup code”.
+      </Muted>
       {error ? <Banner text={error} /> : null}
       {info ? <Banner text={info} tone="info" /> : null}
       <Field label="Code" value={code} onChangeText={setCode} keyboardType="numeric" />

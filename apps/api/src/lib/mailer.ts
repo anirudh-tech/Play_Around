@@ -41,6 +41,7 @@ export function createSmtpMailer(env: SmtpEnv, logger: Logger): Mailer {
           text: message.text,
           html: message.html,
         });
+        logger.info({ to: message.to, subject: message.subject }, 'mail sent');
       } catch (err) {
         logger.warn({ err, to: message.to, subject: message.subject }, 'mail send failed');
       }

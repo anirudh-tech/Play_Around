@@ -4,10 +4,37 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 /**
- * Shared flat config. Apps extend it and add their own ignores.
- * @param {{ ignores?: string[] }} [options]
+ * typescript-eslint records every `eslint.config.*` that touches `configs.recommended`.
+ * Cursor lints the monorepo in one process, so api + mobile both get recorded. If
+ * `parserOptions.tsconfigRootDir` is missing on the parser, that throws.
+ * Stamp the root onto every recommended block, not only our later override.
  */
-export function createConfig(options = {}) {
+function withTsconfigRootDir(blocks, tsconfigRootDir) {
+  return blocks.flatMap((block) => (Array.isArray(block) ? block : [block])).map((item) => {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+    return {
+      ...item,
+      languageOptions: {
+        ...item.languageOptions,
+        parserOptions: {
+          ...item.languageOptions?.parserOptions,
+          tsconfigRootDir,
+        },
+      },
+    };
+  });
+}
+
+/**
+ * Shared flat config. Apps must pass `tsconfigRootDir: import.meta.dirname`.
+ * @param {{ ignores?: string[]; tsconfigRootDir: string }} options
+ */
+export function createConfig(options) {
+  const tsconfigRootDir = options.tsconfigRootDir;
+  if (!tsconfigRootDir) {
+    throw new Error('createConfig() requires tsconfigRootDir: import.meta.dirname');
+  }
+
   return tseslint.config(
     {
       ignores: [
@@ -22,10 +49,11 @@ export function createConfig(options = {}) {
       ],
     },
     js.configs.recommended,
-    ...tseslint.configs.recommended,
+    ...withTsconfigRootDir(tseslint.configs.recommended, tsconfigRootDir),
     {
       languageOptions: {
         globals: { ...globals.node, ...globals.browser },
+        parserOptions: { tsconfigRootDir },
       },
       rules: {
         '@typescript-eslint/no-unused-vars': [
@@ -42,5 +70,3 @@ export function createConfig(options = {}) {
     prettier,
   );
 }
-
-export default createConfig();

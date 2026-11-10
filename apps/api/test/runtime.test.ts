@@ -31,6 +31,14 @@ describe('loadEnv', () => {
     expect(env.MAIL_PASSWORD).toBe('app-password');
   });
 
+  it('strips spaces from a Gmail App Password', () => {
+    const env = loadEnv({
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+      MAIL_PASSWORD: 'abcd efgh ijkl mnop',
+    });
+    expect(env.MAIL_PASSWORD).toBe('abcdefghijklmnop');
+  });
+
   it('rejects a missing or non-Postgres database URL', () => {
     expect(() => loadEnv({})).toThrow(/DATABASE_URL/);
     expect(() => loadEnv({ DATABASE_URL: 'mysql://x' })).toThrow(/postgres/);

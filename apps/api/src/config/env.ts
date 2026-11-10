@@ -38,7 +38,7 @@ const EnvSchema = z.object({
   MAIL_PASSWORD: z
     .string()
     .optional()
-    .transform((value) => value?.trim() || undefined),
+    .transform((value) => value?.replace(/\s+/g, '') || undefined),
   GOOGLE_CLIENT_IDS: z
     .string()
     .default('')
