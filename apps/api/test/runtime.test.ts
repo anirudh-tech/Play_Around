@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadEnv } from '../src/config/env';
 import { createEventBus } from '../src/lib/event-bus';
 import { createJobRunner } from '../src/lib/job-runner';
+import { smtpTransportOptions } from '../src/lib/mailer';
+import { otpEmail } from '../src/lib/otp-email';
 import { poolSslFromDatabaseUrl } from '../src/lib/prisma';
 
 const logger = pino({ level: 'silent' });
@@ -16,6 +18,17 @@ describe('loadEnv', () => {
     expect(env.PORT).toBe(4000);
     expect(env.CORS_ORIGINS).toEqual(['http://a.test', 'http://b.test']);
     expect(env.JOBS_ENABLED).toBe(true);
+    expect(env.MAIL_USER).toBeUndefined();
+  });
+
+  it('keeps Gmail SMTP credentials when set', () => {
+    const env = loadEnv({
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+      MAIL_USER: ' playaround@gmail.com ',
+      MAIL_PASSWORD: ' app-password ',
+    });
+    expect(env.MAIL_USER).toBe('playaround@gmail.com');
+    expect(env.MAIL_PASSWORD).toBe('app-password');
   });
 
   it('rejects a missing or non-Postgres database URL', () => {
@@ -24,9 +37,44 @@ describe('loadEnv', () => {
   });
 });
 
+describe('otpEmail', () => {
+  it('puts the signup code in text and html', () => {
+    const mail = otpEmail('EMAIL_VERIFY', '482193', 60);
+    expect(mail.subject).toMatch(/signup/i);
+    expect(mail.text).toContain('482193');
+    expect(mail.html).toContain('482193');
+    expect(mail.html).toContain('PLAYAROUND');
+  });
+});
+
+describe('smtpTransportOptions', () => {
+  it('uses STARTTLS and auth for Gmail submission', () => {
+    const env = loadEnv({
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+      MAIL_HOST: 'smtp.gmail.com',
+      MAIL_PORT: '587',
+      MAIL_USER: 'playaround@gmail.com',
+      MAIL_PASSWORD: 'app-password',
+    });
+    expect(smtpTransportOptions(env)).toMatchObject({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: { user: 'playaround@gmail.com', pass: 'app-password' },
+    });
+  });
+
+  it('omits auth for local Mailpit', () => {
+    const env = loadEnv({ DATABASE_URL: 'postgresql://u:p@localhost:5432/db' });
+    expect(smtpTransportOptions(env).auth).toBeUndefined();
+    expect(smtpTransportOptions(env).requireTLS).toBe(false);
+  });
+});
+
 describe('poolSslFromDatabaseUrl', () => {
   it('leaves local Docker URLs without TLS', () => {
-    expect(poolSslFromDatabaseUrl('postgresql://playaround_db_user:DyauqcnUKtC7S4moyNrolcy6WvpLXNIX@dpg-dbpcv949v7es73bi8v9g-a/playaround_db?sslmode=require')).toBeUndefined();
+    expect(poolSslFromDatabaseUrl('postgresql://playaround:playaround@127.0.0.1:5433/playaround')).toBeUndefined();
   });
 
   it('enables TLS for Render public hosts and sslmode=require', () => {

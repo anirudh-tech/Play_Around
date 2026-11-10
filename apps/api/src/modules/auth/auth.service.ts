@@ -5,6 +5,7 @@ import type { Env } from '../../config/env';
 import { AppError } from '../../lib/errors';
 import { hashSecret, randomToken, sixDigitCode } from '../../lib/hash';
 import type { Mailer } from '../../lib/mailer';
+import { otpEmail } from '../../lib/otp-email';
 import type { OauthVerifier, SocialProfile } from '../../lib/oauth';
 import { hashPassword, verifyPassword } from '../../lib/password';
 import type { Database } from '../../lib/prisma';
@@ -233,14 +234,12 @@ async function issueEmailCode(ctx: AuthContext, userId: string, email: string, p
       expiresAt: new Date(ctx.now().getTime() + ttlMin * 60 * 1000),
     },
   });
-  const subject =
-    purpose === 'PASSWORD_RESET'
-      ? 'Reset your PlayAround password'
-      : 'Verify your PlayAround email';
+  const message = otpEmail(purpose, code, ttlMin);
   await ctx.mailer.send({
     to: email,
-    subject,
-    text: `Your PlayAround code is ${code}. It expires in ${ttlMin} minutes.`,
+    subject: message.subject,
+    text: message.text,
+    html: message.html,
   });
   return code;
 }

@@ -6,18 +6,30 @@ export interface MailMessage {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 }
 
 export interface Mailer {
   send(message: MailMessage): Promise<void>;
 }
 
-export function createSmtpMailer(env: Pick<Env, 'MAIL_HOST' | 'MAIL_PORT' | 'MAIL_FROM'>, logger: Logger): Mailer {
-  const transport = nodemailer.createTransport({
+export type SmtpEnv = Pick<Env, 'MAIL_HOST' | 'MAIL_PORT' | 'MAIL_FROM' | 'MAIL_USER' | 'MAIL_PASSWORD'>;
+
+export function smtpTransportOptions(env: SmtpEnv) {
+  const user = env.MAIL_USER;
+  const pass = env.MAIL_PASSWORD;
+  const port = env.MAIL_PORT;
+  return {
     host: env.MAIL_HOST,
-    port: env.MAIL_PORT,
-    secure: false,
-  });
+    port,
+    secure: port === 465,
+    requireTLS: port === 587,
+    auth: user && pass ? { user, pass } : undefined,
+  };
+}
+
+export function createSmtpMailer(env: SmtpEnv, logger: Logger): Mailer {
+  const transport = nodemailer.createTransport(smtpTransportOptions(env));
 
   return {
     async send(message) {
@@ -27,6 +39,7 @@ export function createSmtpMailer(env: Pick<Env, 'MAIL_HOST' | 'MAIL_PORT' | 'MAI
           to: message.to,
           subject: message.subject,
           text: message.text,
+          html: message.html,
         });
       } catch (err) {
         logger.warn({ err, to: message.to, subject: message.subject }, 'mail send failed');

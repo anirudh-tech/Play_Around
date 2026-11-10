@@ -31,6 +31,14 @@ const EnvSchema = z.object({
   MAIL_HOST: z.string().default('127.0.0.1'),
   MAIL_PORT: z.coerce.number().int().positive().default(1025),
   MAIL_FROM: z.string().default('PlayAround <noreply@playaround.local>'),
+  MAIL_USER: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  MAIL_PASSWORD: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
   GOOGLE_CLIENT_IDS: z
     .string()
     .default('')

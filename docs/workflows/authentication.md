@@ -18,6 +18,8 @@ External identities are stored in `auth_identities (provider, provider_user_id)`
 | Check | Required for | Decision |
 | --- | --- | --- |
 | Email verified | Joining and creating sessions (Google/Apple emails count as verified) | Recommended (carried from Phase 1) |
+
+Signup, email change, and password reset send a 6-digit code by SMTP (`MAIL_*`). Local Mailpit; hosted Gmail uses `smtp.gmail.com:587` plus an App Password. The code is hashed, valid 60 min (reset: 30 min). Phone SMS is still a console stub (O-13).
 | Phone verified | **Publishing sessions** (organisers) | DEC-036 |
 | Phone | Optional for players | DEC-036 |
 | TOTP enrolled | Any staff action | DEC-037 |
