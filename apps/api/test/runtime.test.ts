@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadEnv } from '../src/config/env';
 import { createEventBus } from '../src/lib/event-bus';
 import { createJobRunner } from '../src/lib/job-runner';
+import { poolSslFromDatabaseUrl } from '../src/lib/prisma';
 
 const logger = pino({ level: 'silent' });
 
@@ -20,6 +21,21 @@ describe('loadEnv', () => {
   it('rejects a missing or non-Postgres database URL', () => {
     expect(() => loadEnv({})).toThrow(/DATABASE_URL/);
     expect(() => loadEnv({ DATABASE_URL: 'mysql://x' })).toThrow(/postgres/);
+  });
+});
+
+describe('poolSslFromDatabaseUrl', () => {
+  it('leaves local Docker URLs without TLS', () => {
+    expect(poolSslFromDatabaseUrl('postgresql://playaround:playaround@127.0.0.1:5433/playaround')).toBeUndefined();
+  });
+
+  it('enables TLS for Render public hosts and sslmode=require', () => {
+    expect(
+      poolSslFromDatabaseUrl('postgresql://u:p@dpg-abc.oregon-postgres.render.com/db'),
+    ).toEqual({ rejectUnauthorized: false });
+    expect(poolSslFromDatabaseUrl('postgresql://u:p@localhost:5432/db?sslmode=require')).toEqual({
+      rejectUnauthorized: false,
+    });
   });
 });
 

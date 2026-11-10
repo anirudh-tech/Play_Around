@@ -32,7 +32,7 @@ const app = createApp({
   mailer,
   sms,
   oauth,
-  checkDatabase: () => checkDatabase(db),
+  checkDatabase: () => checkDatabase(db, 8_000, (err) => logger.warn({ err }, 'database ping failed')),
 });
 
 const httpServer = createServer(app);
