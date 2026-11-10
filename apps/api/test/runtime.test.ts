@@ -26,7 +26,7 @@ describe('loadEnv', () => {
 
 describe('poolSslFromDatabaseUrl', () => {
   it('leaves local Docker URLs without TLS', () => {
-    expect(poolSslFromDatabaseUrl('postgresql://playaround:playaround@127.0.0.1:5433/playaround')).toBeUndefined();
+    expect(poolSslFromDatabaseUrl('postgresql://playaround_db_user:DyauqcnUKtC7S4moyNrolcy6WvpLXNIX@dpg-dbpcv949v7es73bi8v9g-a/playaround_db?sslmode=require')).toBeUndefined();
   });
 
   it('enables TLS for Render public hosts and sslmode=require', () => {
