@@ -52,8 +52,19 @@ export function createApp(deps: AppDeps): Express {
       autoLogging: { ignore: (req) => req.url?.startsWith('/api/v1/health') ?? false },
     }),
   );
-  app.use(helmet());
-  app.use(cors({ origin: env.CORS_ORIGINS, credentials: true }));
+  app.use(
+    helmet({
+      // Default CORP `same-origin` blocks the Vercel browser from reading API responses.
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
+  app.use(
+    cors({
+      origin: env.CORS_ORIGINS,
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Client', 'X-App-Version', 'Idempotency-Key', 'X-Request-Id'],
+    }),
+  );
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
   app.use(parseClient);
