@@ -51,8 +51,8 @@ gantt
 - [x] `packages/config`, `packages/contracts` (enums, error codes, money in fils, `rules/split.ts`), `packages/design-tokens`, `packages/api-client` skeletons
 - [x] `apps/api`: app factory, env validation, logger, errors, health, OpenAPI shell, event bus, job runner skeleton
 - [x] Prisma schema from [database/schema.md](database/schema.md): `prisma validate`, first migration SQL with CHECK constraints, seed framework (UAE venues, three sports)
-- [x] Docker Compose: MySQL 8.4 + Mailpit via Colima (DEC-007)
-- [x] `prisma migrate` and seed against local Docker MySQL (3 sports, 10 venues, 10 settings)
+- [x] Docker Compose: PostgreSQL 16 + Mailpit via Colima (DEC-007, DEC-042)
+- [x] `prisma migrate` and seed against local Docker PostgreSQL (3 sports, 10 venues, 10 settings)
 - [x] `apps/web`, `apps/admin` (Next.js + Tailwind + shadcn/ui) and `apps/mobile` (Expo + Expo Router + NativeWind) booting with placeholder screens
 - [x] No payment-provider SDKs, keys or environment variables
 
@@ -159,7 +159,7 @@ Shared first: `api-client` hooks, query keys, socket client stub, form schemas.
 - [x] Coverage ≥ 80% on `*.service.ts`; Playwright (web, admin) and Maestro (mobile) E2E for core loops
 - [x] k6 load: discovery and join bursts; soak test of the scheduled jobs
 - [x] Security: OWASP API checklist, auth and IDOR tests on session/payment `:id` routes, dependency audit, secret scan
-- [ ] Infra on the reviewed host (L-08): production API, managed MySQL with point-in-time recovery, web and admin hosting, verified domain (L-07), Sentry, uptime and alerting — **blocked**
+- [ ] Infra on the reviewed host (L-08): production API, managed PostgreSQL with point-in-time recovery, web and admin hosting, verified domain (L-07), Sentry, uptime and alerting — **blocked**
 - [ ] Terms, privacy policy and organiser agreement published (L-05; required before public launch per DEC-038) — routes exist, copy **not published**
 - [ ] EAS builds, TestFlight and Play internal testing, store listings, privacy labels, location disclosures (L-09) — **blocked**
 - [ ] Coordinated launch: mobile store approval, web and admin go live together (DEC-003) — **blocked**

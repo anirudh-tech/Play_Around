@@ -9,7 +9,7 @@ const logger = pino({ level: 'silent' });
 describe('loadEnv', () => {
   it('applies defaults and splits CORS origins', () => {
     const env = loadEnv({
-      DATABASE_URL: 'mysql://u:p@localhost:3306/db',
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
       CORS_ORIGINS: 'http://a.test, http://b.test',
     });
     expect(env.PORT).toBe(4000);
@@ -17,9 +17,9 @@ describe('loadEnv', () => {
     expect(env.JOBS_ENABLED).toBe(true);
   });
 
-  it('rejects a missing or non-MySQL database URL', () => {
+  it('rejects a missing or non-Postgres database URL', () => {
     expect(() => loadEnv({})).toThrow(/DATABASE_URL/);
-    expect(() => loadEnv({ DATABASE_URL: 'postgres://x' })).toThrow(/mysql/);
+    expect(() => loadEnv({ DATABASE_URL: 'mysql://x' })).toThrow(/postgres/);
   });
 });
 

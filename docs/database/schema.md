@@ -1,8 +1,8 @@
 # Database Schema (MVP, offline payments)
 
-MySQL 8.4 (InnoDB, `utf8mb4_0900_ai_ci`), Prisma migrations.
+PostgreSQL 16, Prisma migrations (DEC-042).
 
-- Timestamps are UTC `DATETIME(3)`, displayed in Asia/Dubai (DEC-001).
+- Timestamps are UTC `TIMESTAMPTZ(3)`, displayed in Asia/Dubai (DEC-001).
 - Money is integer **fils** (`*_fils`) with `currency CHAR(3) = 'AED'` (DEC-019).
 - IDs are UUID v7 `CHAR(36)` (ARC-002).
 - **No Stripe, checkout, payout, provider-notification or wallet tables** (DEC-017, DEC-021). Their future design is in [future/online-payments-stripe.md](../future/online-payments-stripe.md).
@@ -70,7 +70,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -603,7 +603,7 @@ model Session {
 
   organiser     User                 @relation("SessionOrganiser", fields: [organiserId], references: [id])
   sport         Sport                @relation(fields: [sportId], references: [id])
-  venue         Venue?               @relation(fields: [venueId], references: [id], onDelete: Restrict, onUpdate: Restrict)   // MySQL forbids CHECK on columns with FK actions
+  venue         Venue?               @relation(fields: [venueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   participants  SessionParticipant[]
   interests     SessionInterest[]
   images        SessionImage[]
@@ -1056,7 +1056,7 @@ Sport-level rules (capacity within the sport min/max; `min_players ≥ sport.min
 | `share_max_fils` / `estimated_share_max_fils` | Price shown and filtered in discovery (largest share) |
 | `payments.participant_id` UNIQUE | One payment record per participation; reused on re-join |
 | `payment_confirmations` append-only | Full audit trail of reports, confirmations, refunds and admin corrections |
-| `payment_disputes.open_lock` UNIQUE | At most one open dispute per payment (MySQL has no partial unique indexes; NULLs don't collide) |
+| `payment_disputes.open_lock` UNIQUE | At most one open dispute per payment (NULL `open_lock` rows do not collide) |
 | `venue_bookings` for both session types | One place for "what was booked, for how much, and has the organiser paid the venue" (DEC-014) |
 | `venue_arrangements` / `venue_options` | Staff-coordinated venue sourcing for LFP (DEC-029) |
 | `session_price_changes` + `price_consents` | Explicit, auditable consent for > 20% increases (DEC-031) |

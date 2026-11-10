@@ -1,4 +1,5 @@
-import { PrismaMariaDb } from '@prisma/adapter-mariadb';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { Pool } from 'pg';
 import { PrismaClient } from '../generated/prisma/client';
 
 export type Database = PrismaClient;
@@ -8,17 +9,17 @@ export const lockedTx = { maxWait: 30_000, timeout: 30_000 } as const;
 
 export function createPrismaClient(databaseUrl: string): Database {
   const url = new URL(databaseUrl);
-  const adapter = new PrismaMariaDb({
-    host: url.hostname,
-    port: Number(url.port || 3306),
-    user: decodeURIComponent(url.username),
-    password: decodeURIComponent(url.password),
-    database: url.pathname.replace(/^\//, ''),
-    connectionLimit: 16,
-    connectTimeout: 10_000,
-    acquireTimeout: 30_000,
+  const sslMode = url.searchParams.get('sslmode');
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    max: 16,
+    connectionTimeoutMillis: 10_000,
+    ssl:
+      sslMode === 'require' || sslMode === 'verify-full'
+        ? { rejectUnauthorized: sslMode === 'verify-full' }
+        : undefined,
   });
-  return new PrismaClient({ adapter });
+  return new PrismaClient({ adapter: new PrismaPg(pool) });
 }
 
 export async function checkDatabase(db: Database, timeoutMs = 2_000): Promise<boolean> {

@@ -9,6 +9,6 @@ export default defineConfig({
   },
   datasource: {
     // Default matches infrastructure/docker/docker-compose.yml so `prisma generate` works without a .env.
-    url: process.env.DATABASE_URL ?? 'mysql://playaround:playaround@localhost:3306/playaround',
+    url: process.env.DATABASE_URL ?? 'postgresql://playaround:playaround@127.0.0.1:5433/playaround',
   },
 });

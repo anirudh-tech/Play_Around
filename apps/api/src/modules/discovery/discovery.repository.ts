@@ -42,18 +42,24 @@ export type DiscoveryCursor =
   | { sort: 'recommended'; offset: number };
 
 function distanceSql(lat: number, lng: number) {
-  return Prisma.sql`CASE
-    WHEN s.location_precision = 'AREA' AND s.area_radius_km IS NOT NULL
-    THEN GREATEST(0, ST_Distance_Sphere(POINT(s.longitude, s.latitude), POINT(${lng}, ${lat})) - (s.area_radius_km * 1000))
-    ELSE ST_Distance_Sphere(POINT(s.longitude, s.latitude), POINT(${lng}, ${lat}))
-  END`;
+  return Prisma.sql`GREATEST(0,
+    6371000 * acos(LEAST(1, GREATEST(-1,
+      cos(radians(${lat})) * cos(radians(s.latitude::float)) * cos(radians(s.longitude::float) - radians(${lng}))
+      + sin(radians(${lat})) * sin(radians(s.latitude::float))
+    )))
+    - CASE
+        WHEN s.location_precision::text = 'AREA' AND s.area_radius_km IS NOT NULL
+        THEN s.area_radius_km::float * 1000
+        ELSE 0
+      END
+  )`;
 }
 
 function filters(input: DiscoverySearch) {
   const box = boundingBox(input.lat, input.lng, input.radiusKm);
   const parts: Prisma.Sql[] = [
-    Prisma.sql`s.status = 'OPEN'`,
-    Prisma.sql`s.visibility = 'PUBLIC'`,
+    Prisma.sql`s.status::text = 'OPEN'`,
+    Prisma.sql`s.visibility::text = 'PUBLIC'`,
     Prisma.sql`s.starts_at > ${input.from}`,
     Prisma.sql`s.starts_at <= ${input.to}`,
     Prisma.sql`s.latitude BETWEEN ${box.minLat} AND ${box.maxLat}`,
@@ -61,16 +67,16 @@ function filters(input: DiscoverySearch) {
     Prisma.sql`(s.capacity - s.confirmed_count) >= ${input.minSpots}`,
   ];
   if (input.joinableOnly) {
-    parts.push(Prisma.sql`s.venue_confirmation_status = 'CONFIRMED'`);
+    parts.push(Prisma.sql`s.venue_confirmation_status::text = 'CONFIRMED'`);
   }
   if (input.sportIds?.length) {
     parts.push(Prisma.sql`s.sport_id IN (${Prisma.join(input.sportIds)})`);
   }
   if (input.types?.length) {
-    parts.push(Prisma.sql`s.session_type IN (${Prisma.join(input.types)})`);
+    parts.push(Prisma.sql`s.session_type::text IN (${Prisma.join(input.types)})`);
   }
   if (input.skillLevel) {
-    parts.push(Prisma.sql`s.skill_level = ${input.skillLevel}`);
+    parts.push(Prisma.sql`s.skill_level::text = ${input.skillLevel}`);
   }
   if (input.minPriceFils != null) {
     parts.push(
@@ -83,7 +89,7 @@ function filters(input: DiscoverySearch) {
     );
   }
   if (input.timeOfDay?.length) {
-    const hour = Prisma.sql`HOUR(DATE_ADD(s.starts_at, INTERVAL 4 HOUR))`;
+    const hour = Prisma.sql`EXTRACT(HOUR FROM (s.starts_at AT TIME ZONE 'Asia/Dubai'))`;
     const slots = input.timeOfDay.map((slot) => {
       const { start, end } = TIME_OF_DAY_HOURS[slot];
       if (start < end) return Prisma.sql`(${hour} >= ${start} AND ${hour} < ${end})`;
@@ -119,7 +125,7 @@ function innerSelect(input: DiscoverySearch) {
       ${dist} AS distance_m,
       COALESCE(s.share_max_fils, s.estimated_share_max_fils, 0) AS price_fils,
       s.starts_at
-    FROM sessions s FORCE INDEX (sessions_latitude_longitude_idx)
+    FROM sessions s
     WHERE ${filters(input)}
   `;
 }

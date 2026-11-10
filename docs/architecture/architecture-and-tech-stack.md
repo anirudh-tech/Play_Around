@@ -11,14 +11,14 @@ MVP architecture for offline payments. **No payment provider is integrated.** St
 | Web | Next.js (App Router) + TypeScript, Tailwind CSS, shadcn/ui, TanStack Query, React Hook Form + Zod, Google Maps JS | DEC-004; libraries recommended |
 | Admin | Separate Next.js + TypeScript app, same UI stack as web | DEC-003, DEC-004 |
 | API | Node.js + Express + TypeScript, Zod, Socket.IO, Swagger/OpenAPI | DEC-004 |
-| Database | MySQL 8.4 + Prisma | DEC-004 |
+| Database | PostgreSQL 16 + Prisma | DEC-004, DEC-042 |
 | Shared code | One `contracts` package: Zod schemas, inferred types, enums, error codes, pure rules | DEC-005 |
 | Images | Cloudinary (signed direct uploads) | DEC-006 |
 | Maps and places | Google Maps + Places (mobile, web, admin) | Recommended |
 | Push | Expo Push Notifications | ARC-007 |
 | Email | Transactional email provider (to choose in Phase 3); Mailpit locally | Recommended |
 | SMS (phone OTP) | Provider to choose | O-13 |
-| Local development | Docker Compose: MySQL 8.4 + Mailpit | DEC-007 |
+| Local development | Docker Compose: PostgreSQL 16 + Mailpit | DEC-007 |
 | Node.js runtime | **Node.js 26.13.0** Active LTS, pinned in `.nvmrc` and `engines`. TypeScript 6.0.3 (eslint 8.72 does not yet support TypeScript 6.1). Web/admin use Tailwind CSS v4; mobile NativeWind 4 still uses Tailwind 3. | DEC-008 |
 | Hosting | AWS Middle East (UAE, `me-central-1`), subject to cost and data-residency review | DEC-041 (Recommended), L-08 |
 
@@ -51,7 +51,7 @@ flowchart LR
   M & W & A -- WSS --> RT
   API & JOBS --> BUS --> RT
   BUS --> PUSH["Expo Push"]
-  API & JOBS --> DB[("MySQL 8.4")]
+  API & JOBS --> DB[("PostgreSQL")]
   API --> IMG["Cloudinary"]
   API --> MAIL["Email / SMS"]
   M & W & A --> GM["Google Maps + Places"]
@@ -215,7 +215,7 @@ playaround/
 │   ├── design-tokens/
 │   └── config/                        # tsconfig, eslint, prettier presets
 ├── infrastructure/
-│   ├── docker/docker-compose.yml      # mysql 8.4, mailpit
+│   ├── docker/docker-compose.yml      # postgres 16, mailpit
 │   └── database/init/
 ├── docs/
 │   ├── README.md  roadmap.md
@@ -233,9 +233,9 @@ playaround/
 
 | Env | API | Database | Notes |
 | --- | --- | --- | --- |
-| local | `pnpm dev` | MySQL 8.4 via Colima + Docker Compose (`pnpm db:up`) | Mailpit at http://localhost:8025; SMS codes logged to the console. If Compose is down, the API still boots and `/health/ready` reports `database: down`. |
+| local | `pnpm dev` | PostgreSQL 16 via Colima + Docker Compose (`pnpm db:up`) | Mailpit at http://localhost:8025; SMS codes logged to the console. If Compose is down, the API still boots and `/health/ready` reports `database: down`. |
 | staging | Hosted (L-08) | Anonymised seed | Real email/SMS to allow-listed recipients only |
-| production | Hosted (L-08) | Managed MySQL with point-in-time recovery | — |
+| production | Hosted (L-08) | Managed PostgreSQL with point-in-time recovery | — |
 
 Secrets (JWT keys, TOTP encryption key, Google/Apple sign-in credentials, Maps keys, Cloudinary, email/SMS keys) live only in environment variables or the host's secret manager. The API's Zod config schema validates them at boot. No payment-provider keys exist in the MVP.
 
@@ -243,7 +243,7 @@ Secrets (JWT keys, TOTP encryption key, Google/Apple sign-in credentials, Maps k
 
 - TypeScript `strict`; ESLint and Prettier from `packages/config`; Husky and lint-staged; Conventional Commits.
 - Database uses `snake_case` via `@@map`; API JSON uses `camelCase`. Money is always `{ amountFils, currency }`.
-- Tests: Vitest and Supertest against a real MySQL test database (transactions can't be mocked meaningfully). Playwright for web and admin E2E, Maestro for mobile.
+- Tests: Vitest and Supertest against a real PostgreSQL test database (transactions can't be mocked meaningfully). Playwright for web and admin E2E, Maestro for mobile.
 - Required concurrency tests: joins at capacity, concurrent leave and join, and concurrent payment actions.
 - Definition of done for any screen: loading skeleton, empty state, error and retry, both themes, accessibility labels.
 - Docs are updated in the same change as the behaviour they describe.

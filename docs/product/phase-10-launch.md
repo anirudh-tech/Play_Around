@@ -21,7 +21,7 @@ In-repo work for coverage, E2E, load, and security. **Production go-live is bloc
 | --- | --- |
 | L-05 legal documents | DEC-038 — no drafted terms/privacy/organiser agreement |
 | L-07 domain | `playaround.app` is recommended only |
-| L-08 hosting | AWS `me-central-1` is recommended only; no production MySQL/PITR/Sentry/uptime |
+| L-08 hosting | AWS `me-central-1` is recommended only; no production PostgreSQL/PITR/Sentry/uptime |
 | L-09 stores | No App Store / Play developer accounts; no EAS submit |
 | Coordinated launch | DEC-003 needs the above |
 

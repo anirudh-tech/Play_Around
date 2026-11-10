@@ -23,7 +23,7 @@
 Staff sign-in with mandatory TOTP; users; sessions; venue arrangement queue; venues and sports catalogue; payment records and disputes; reports and moderation; platform settings; audit log. See the [admin application](../architecture/admin-application.md).
 
 ### Platform
-REST API, Socket.IO real-time updates, Expo push, scheduled jobs (minimum-player deadline, venue deadline, completion/expiry, reminders, price-consent expiry), MySQL 8.4, Cloudinary, Docker Compose for local development.
+REST API, Socket.IO real-time updates, Expo push, scheduled jobs (minimum-player deadline, venue deadline, completion/expiry, reminders, price-consent expiry), PostgreSQL, Cloudinary, Docker Compose for local development.
 
 ## Out of scope for the MVP
 

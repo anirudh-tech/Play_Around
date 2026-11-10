@@ -21,10 +21,10 @@ The single register of PlayAround decisions. Other documents reference these IDs
 | DEC-001 | Market | UAE first. English only. Currency AED. Timezone Asia/Dubai. | Focused launch market | Approved | 2026-11-08 |
 | DEC-002 | Sports | Badminton, football, cricket at launch. Sports are data (catalogue table), so new sports need no architectural change. | Original brief: support more sports later without major changes | Approved | 2026-11-08 |
 | DEC-003 | Applications | Mobile (iOS + Android) and web launch together; separate admin application. All use the same API. | Simultaneous launch on all platforms | Approved | 2026-11-08 |
-| DEC-004 | Tech stack | Monorepo with pnpm + Turborepo. Mobile: React Native + Expo + TypeScript. Web: Next.js + TypeScript. Admin: Next.js + TypeScript. API: Node.js + Express + TypeScript. Database: MySQL 8.4 + Prisma. | Team skills; one language across the stack | Approved | 2026-11-08 |
+| DEC-004 | Tech stack | Monorepo with pnpm + Turborepo. Mobile: React Native + Expo + TypeScript. Web: Next.js + TypeScript. Admin: Next.js + TypeScript. API: Node.js + Express + TypeScript. Database: PostgreSQL + Prisma (DEC-042). | Team skills; one language across the stack | Approved | 2026-11-08 |
 | DEC-005 | Shared code | One `contracts` package (Zod schemas + inferred types + shared rules) replaces separate `shared-types` and `validation` packages. | Types inferred from schemas cannot drift | Approved | 2026-11-08 |
 | DEC-006 | Image storage | Cloudinary | Signed direct uploads and built-in transforms | Approved | 2026-11-08 |
-| DEC-007 | Local development | Docker Compose (MySQL 8.4 + dev mail server) | Reproducible local setup | Approved | 2026-11-08 |
+| DEC-007 | Local development | Docker Compose (PostgreSQL 16 + dev mail server) | Reproducible local setup | Approved | 2026-11-08 |
 | DEC-008 | Node.js runtime | Pin **Node.js 26.13.0** Active LTS (`Lithium`) via `.nvmrc` and `engines: ">=26.13.0 <27"`. Evaluated in Phase 2 against Expo SDK 58, Next.js 16.4, Prisma 7.10, TypeScript 6.0, pnpm 12. | Current LTS; all primary tools ran on 26.13.0. Prisma 7 still warns that it officially supports Node 20.19+/22.12+/24+; generate, validate, migrate-diff and runtime succeeded anyway. Prisma 8 (RC at evaluation time) is the first Prisma line that lists Node 26. Revisit if Prisma 7 breaks on a later 26.x. | Approved | 2026-11-08 |
 | DEC-009 | Location | GPS and manual location selection | Users who deny location must still be able to search | Approved | 2026-11-08 |
 | DEC-010 | Chat | Group chat deferred. Real-time and notification design must not block adding it later. | MVP focus | Approved | 2026-11-08 |
@@ -59,6 +59,7 @@ The single register of PlayAround decisions. Other documents reference these IDs
 | DEC-039 | Documentation | Docs live in `product/`, `architecture/`, `database/`, `api/`, `workflows/`, `future/`, `decisions/`, `archive/`, plus `roadmap.md` and `README.md`. | One canonical document per topic | Approved | 2026-11-08 |
 | DEC-040 | Domain | `playaround.app` proposed. Availability and ownership must be verified before use. | — | Recommended (launch item L-07) | 2026-11-08 |
 | DEC-041 | Hosting | AWS Middle East region (UAE, `me-central-1`), subject to cost and data-residency review. | Latency and residency for UAE users | Recommended (launch item L-08) | 2026-11-08 |
+| DEC-042 | Database engine | PostgreSQL (Prisma + Docker Postgres 16). Replaces MySQL 8.4 in DEC-004 / DEC-007. | Owner request; managed Postgres is easier to host for previews (Neon, Render, Vercel-adjacent) | Approved | 2026-11-10 |
 
 ## 2. Architecture baseline (recommended, carried from Phase 1)
 
@@ -128,3 +129,4 @@ These are gaps where the approved decisions don't say enough to implement. Each 
 | SUP-009 | LFP joining | Players could join (hold a spot) before the venue was confirmed | DEC-028 | Superseded | 2026-11-08 |
 | SUP-010 | Lead time | 30 min for existing bookings, 3 h for LFP | DEC-024 | Superseded | 2026-11-08 |
 | SUP-011 | Shared packages | Separate `shared-types` and `validation` packages | DEC-005 | Superseded | 2026-11-08 |
+| SUP-012 | Database engine | MySQL 8.4 + Prisma (DEC-004, DEC-007) | DEC-042 | Superseded | 2026-11-10 |

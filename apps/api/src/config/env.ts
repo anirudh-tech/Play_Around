@@ -4,7 +4,9 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
-  DATABASE_URL: z.string().regex(/^mysql:\/\//, 'must be a mysql:// connection string'),
+  DATABASE_URL: z
+    .string()
+    .regex(/^postgres(ql)?:\/\//, 'must be a postgres:// or postgresql:// connection string'),
   CORS_ORIGINS: z
     .string()
     .default('http://localhost:3000,http://localhost:3001,http://localhost:8081')

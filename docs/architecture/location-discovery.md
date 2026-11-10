@@ -21,23 +21,30 @@ One table (`sessions`), two stages:
 1. **Indexed bounding box**: from `(lat, lng, radiusKm)`:
    `Δlat = r / 111.045`, `Δlng = r / (111.045 · cos(lat))`.
    Uses `sessions (status, starts_at)` and `(latitude, longitude)` indexes. Discovery always filters on `status = 'OPEN' AND starts_at > now`, so the candidate set is small and time-bounded.
-2. **Exact distance**: `ST_Distance_Sphere(POINT(lng, lat), POINT(:lng, :lat))` on the survivors, then filtered by radius and sorted.
+2. **Exact distance**: spherical Haversine on `latitude`/`longitude` (metres), then filtered by radius and sorted.
 
 ```sql
-SELECT s.*, ST_Distance_Sphere(POINT(s.longitude, s.latitude), POINT(:lng, :lat)) AS distance_m
+SELECT s.*, (
+  6371000 * acos(LEAST(1, GREATEST(-1,
+    cos(radians(:lat)) * cos(radians(s.latitude::float)) * cos(radians(s.longitude::float) - radians(:lng))
+    + sin(radians(:lat)) * sin(radians(s.latitude::float))
+  )))
+) AS distance_m
 FROM sessions s
-WHERE s.status = 'OPEN'
-  AND s.visibility = 'PUBLIC'
-  AND s.starts_at > NOW(3)
+WHERE s.status::text = 'OPEN'
+  AND s.visibility::text = 'PUBLIC'
+  AND s.starts_at > now()
   AND s.latitude  BETWEEN :minLat AND :maxLat
   AND s.longitude BETWEEN :minLng AND :maxLng
   AND s.sport_id IN (:sportIds)                      -- optional
-  AND s.session_type IN (:types)                     -- optional
+  AND s.session_type::text IN (:types)               -- optional
   AND s.starts_at BETWEEN :from AND :to              -- optional
   AND COALESCE(s.share_max_fils, s.estimated_share_max_fils, 0) BETWEEN :minPriceFils AND :maxPriceFils   -- optional
   AND (s.capacity - s.confirmed_count) >= :minSpots
-  AND (:joinableOnly = 0 OR s.venue_confirmation_status = 'CONFIRMED')
-HAVING distance_m <= :radiusM
+  AND (:joinableOnly = false OR s.venue_confirmation_status::text = 'CONFIRMED')
+  AND (
+    6371000 * acos(...)  -- same expression as distance_m
+  ) <= :radiusM
 ORDER BY distance_m, s.starts_at, s.id
 LIMIT :limit;
 ```
@@ -54,7 +61,7 @@ This is run with `prisma.$queryRaw` (parameterised) in `discovery.repository.ts`
 **Area sessions:** for `location_precision = AREA`, the reported distance is `max(0, distance_to_centroid − area_radius)`, labelled "~2 km away", so area sessions aren't unfairly ranked below exact ones.
 
 ### Why not a SPATIAL index in MVP
-Prisma has no native `POINT` type, and MySQL's SRID 4326 axis-order rules add friction for little gain at this scale. **Upgrade path, with no API change:** add a `location POINT SRID 4326` column + `SPATIAL INDEX` via a raw migration, and switch stage 1 to `MBRContains`. The trigger is a discovery p95 above 300 ms in load tests.
+Prisma has no native `POINT` type. **Upgrade path, with no API change:** enable PostGIS, add a `geography` column + GIST index, and switch stage 1 to `ST_DWithin`. The trigger is a discovery p95 above 300 ms in load tests.
 
 ## 3. Radius, bands and auto-expansion
 

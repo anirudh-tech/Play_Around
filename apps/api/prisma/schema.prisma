@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
 }
 
 // ═════════════ Enums ═════════════
@@ -242,14 +242,14 @@ model User {
   email           String     @unique @db.VarChar(191)
   passwordHash    String?    @map("password_hash") @db.VarChar(255)   // null for social-only accounts
   phone           String?    @unique @db.VarChar(20)                  // E.164
-  phoneVerifiedAt DateTime?  @map("phone_verified_at") @db.DateTime(3)
-  emailVerifiedAt DateTime?  @map("email_verified_at") @db.DateTime(3)
+  phoneVerifiedAt DateTime?  @map("phone_verified_at") @db.Timestamptz(3)
+  emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz(3)
   role            UserRole   @default(USER)
   status          UserStatus @default(ACTIVE)
-  lastLoginAt     DateTime?  @map("last_login_at") @db.DateTime(3)
-  createdAt       DateTime   @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt       DateTime   @updatedAt @map("updated_at") @db.DateTime(3)
-  deletedAt       DateTime?  @map("deleted_at") @db.DateTime(3)
+  lastLoginAt     DateTime?  @map("last_login_at") @db.Timestamptz(3)
+  createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  deletedAt       DateTime?  @map("deleted_at") @db.Timestamptz(3)
 
   profile               UserProfile?
   mfa                   UserMfa?
@@ -293,7 +293,7 @@ model AuthIdentity {
   provider       AuthProvider
   providerUserId String       @map("provider_user_id") @db.VarChar(255)
   email          String?      @db.VarChar(191)                       // may be an Apple private-relay address
-  createdAt      DateTime     @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -314,7 +314,7 @@ model UserProfile {
   notificationPrefs Json?    @map("notification_prefs")
   ratingAvg         Decimal  @default(0) @map("rating_avg") @db.Decimal(3, 2)
   ratingCount       Int      @default(0) @map("rating_count")
-  updatedAt         DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -324,10 +324,10 @@ model UserProfile {
 model UserMfa {
   userId        String    @id @map("user_id") @db.Char(36)
   totpSecretEnc String    @map("totp_secret_enc") @db.VarChar(255)   // encrypted at rest
-  enabledAt     DateTime? @map("enabled_at") @db.DateTime(3)
+  enabledAt     DateTime? @map("enabled_at") @db.Timestamptz(3)
   recoveryCodes Json      @map("recovery_codes")                     // hashed, single use
   failedCount   Int       @default(0) @map("failed_count") @db.SmallInt
-  lockedUntil   DateTime? @map("locked_until") @db.DateTime(3)
+  lockedUntil   DateTime? @map("locked_until") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -342,9 +342,9 @@ model RefreshToken {
   replacedById String?   @map("replaced_by_id") @db.Char(36)
   audience     String    @default("app") @db.VarChar(10)               // app | admin
   userAgent    String?   @map("user_agent") @db.VarChar(255)
-  expiresAt    DateTime  @map("expires_at") @db.DateTime(3)
-  revokedAt    DateTime? @map("revoked_at") @db.DateTime(3)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  expiresAt    DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt    DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -359,10 +359,10 @@ model VerificationCode {
   purpose    VerificationPurpose
   target     String?             @db.VarChar(191)                  // phone or new email being verified
   codeHash   String              @map("code_hash") @db.Char(64)
-  attempts   Int                 @default(0) @db.TinyInt
-  expiresAt  DateTime            @map("expires_at") @db.DateTime(3)
-  consumedAt DateTime?           @map("consumed_at") @db.DateTime(3)
-  createdAt  DateTime            @default(now()) @map("created_at") @db.DateTime(3)
+  attempts   Int                 @default(0) @db.SmallInt
+  expiresAt  DateTime            @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime?           @map("consumed_at") @db.Timestamptz(3)
+  createdAt  DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -375,7 +375,7 @@ model Device {
   userId     String         @map("user_id") @db.Char(36)
   platform   DevicePlatform
   pushToken  String         @unique @map("push_token") @db.VarChar(255)
-  lastSeenAt DateTime       @default(now()) @map("last_seen_at") @db.DateTime(3)
+  lastSeenAt DateTime       @default(now()) @map("last_seen_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -437,8 +437,8 @@ model Venue {
   staffNotes     String?  @map("staff_notes") @db.Text               // staff-only
   mergedIntoId   String?  @map("merged_into_id") @db.Char(36)
   createdById    String?  @map("created_by_id") @db.Char(36)
-  createdAt      DateTime @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   createdBy User?          @relation("VenueCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
   sports    VenueSport[]
@@ -470,7 +470,7 @@ model VenueImage {
   url        String   @db.VarChar(500)
   publicId   String   @map("public_id") @db.VarChar(255)            // Cloudinary public ID
   sortOrder  Int      @default(0) @map("sort_order") @db.SmallInt
-  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
 
@@ -500,17 +500,17 @@ model Session {
   timezone                   String                     @default("Asia/Dubai") @db.VarChar(64)
 
   // when (preferred times while venue PENDING)
-  startsAt                   DateTime                   @map("starts_at") @db.DateTime(3)
-  endsAt                     DateTime                   @map("ends_at") @db.DateTime(3)
-  venueConfirmDeadline       DateTime?                  @map("venue_confirm_deadline") @db.DateTime(3)
-  venueConfirmedAt           DateTime?                  @map("venue_confirmed_at") @db.DateTime(3)
+  startsAt                   DateTime                   @map("starts_at") @db.Timestamptz(3)
+  endsAt                     DateTime                   @map("ends_at") @db.Timestamptz(3)
+  venueConfirmDeadline       DateTime?                  @map("venue_confirm_deadline") @db.Timestamptz(3)
+  venueConfirmedAt           DateTime?                  @map("venue_confirmed_at") @db.Timestamptz(3)
 
   // who
   capacity                   Int                        @db.SmallInt          // max players incl. organiser if participating
   minPlayers                 Int?                       @map("min_players") @db.SmallInt
-  minPlayersDecisionDeadline DateTime?                  @map("min_players_decision_deadline") @db.DateTime(3)
+  minPlayersDecisionDeadline DateTime?                  @map("min_players_decision_deadline") @db.Timestamptz(3)
   minPlayersDecision         MinPlayersDecision?        @map("min_players_decision")
-  minPlayersDecidedAt        DateTime?                  @map("min_players_decided_at") @db.DateTime(3)
+  minPlayersDecidedAt        DateTime?                  @map("min_players_decided_at") @db.Timestamptz(3)
   organiserIsPlaying         Boolean                    @default(true) @map("organiser_is_playing")
   confirmedCount             Int                        @default(0) @map("confirmed_count") @db.SmallInt
   interestedCount            Int                        @default(0) @map("interested_count") @db.SmallInt
@@ -528,17 +528,17 @@ model Session {
   instructions               String?                    @db.Text
 
   // lifecycle
-  cancelledAt                DateTime?                  @map("cancelled_at") @db.DateTime(3)
+  cancelledAt                DateTime?                  @map("cancelled_at") @db.Timestamptz(3)
   cancellationReason         SessionCancellationReason? @map("cancellation_reason")
   cancellationNote           String?                    @map("cancellation_note") @db.VarChar(280)
-  closedAt                   DateTime?                  @map("closed_at") @db.DateTime(3)    // COMPLETED / EXPIRED
+  closedAt                   DateTime?                  @map("closed_at") @db.Timestamptz(3)    // COMPLETED / EXPIRED
   version                    Int                        @default(0)
-  createdAt                  DateTime                   @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt                  DateTime                   @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt                  DateTime                   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   organiser     User                 @relation("SessionOrganiser", fields: [organiserId], references: [id])
   sport         Sport                @relation(fields: [sportId], references: [id])
-  venue         Venue?               @relation(fields: [venueId], references: [id], onDelete: Restrict, onUpdate: Restrict)   // MySQL forbids CHECK on columns with FK actions
+  venue         Venue?               @relation(fields: [venueId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   participants  SessionParticipant[]
   interests     SessionInterest[]
   images        SessionImage[]
@@ -569,11 +569,11 @@ model SessionParticipant {
   status               ParticipantStatus
   shareSlot            Int?                           @map("share_slot") @db.SmallInt   // null when CANCELLED
   cancellationReason   ParticipantCancellationReason? @map("cancellation_reason")
-  joinedAt             DateTime                       @default(now()) @map("joined_at") @db.DateTime(3)
-  cancelledAt          DateTime?                      @map("cancelled_at") @db.DateTime(3)
-  attendanceMarkedAt   DateTime?                      @map("attendance_marked_at") @db.DateTime(3)
+  joinedAt             DateTime                       @default(now()) @map("joined_at") @db.Timestamptz(3)
+  cancelledAt          DateTime?                      @map("cancelled_at") @db.Timestamptz(3)
+  attendanceMarkedAt   DateTime?                      @map("attendance_marked_at") @db.Timestamptz(3)
   attendanceMarkedById String?                        @map("attendance_marked_by_id") @db.Char(36)
-  updatedAt            DateTime                       @updatedAt @map("updated_at") @db.DateTime(3)
+  updatedAt            DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   session            Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user               User            @relation("ParticipantUser", fields: [userId], references: [id])
@@ -592,7 +592,7 @@ model SessionParticipant {
 model SessionInterest {
   sessionId String   @map("session_id") @db.Char(36)
   userId    String   @map("user_id") @db.Char(36)
-  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -608,7 +608,7 @@ model SessionImage {
   url       String   @db.VarChar(500)
   publicId  String   @map("public_id") @db.VarChar(255)
   sortOrder Int      @default(0) @map("sort_order") @db.SmallInt
-  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
@@ -623,7 +623,7 @@ model SessionEvent {
   actorId   String?  @map("actor_id") @db.Char(36)                // null = system job
   type      String   @db.VarChar(60)
   data      Json?
-  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
@@ -641,8 +641,8 @@ model SessionPriceChange {
   previousCapacity  Int       @map("previous_capacity") @db.SmallInt
   newCapacity       Int       @map("new_capacity") @db.SmallInt
   reason            String?   @db.VarChar(280)
-  consentDeadline   DateTime? @map("consent_deadline") @db.DateTime(3)   // when any consent is required
-  createdAt         DateTime  @default(now()) @map("created_at") @db.DateTime(3)
+  consentDeadline   DateTime? @map("consent_deadline") @db.Timestamptz(3)   // when any consent is required
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session   Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   createdBy User           @relation(fields: [createdById], references: [id])
@@ -660,8 +660,8 @@ model PriceConsent {
   previousAmountFils Int                @map("previous_amount_fils")
   newAmountFils      Int                @map("new_amount_fils")
   status             PriceConsentStatus @default(PENDING)
-  respondedAt        DateTime?          @map("responded_at") @db.DateTime(3)
-  createdAt          DateTime           @default(now()) @map("created_at") @db.DateTime(3)
+  respondedAt        DateTime?          @map("responded_at") @db.Timestamptz(3)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
 
   priceChange SessionPriceChange @relation(fields: [priceChangeId], references: [id], onDelete: Cascade)
   participant SessionParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
@@ -681,8 +681,8 @@ model VenueArrangement {
   assignedToId String?                @map("assigned_to_id") @db.Char(36)
   staffNotes   String?                @map("staff_notes") @db.Text      // staff-only
   closedReason String?                @map("closed_reason") @db.VarChar(280)
-  createdAt    DateTime               @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt    DateTime               @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt    DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime               @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   session    Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   assignedTo User?         @relation("ArrangementAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -697,15 +697,15 @@ model VenueOption {
   id             String            @id @default(uuid(7)) @db.Char(36)
   arrangementId  String            @map("arrangement_id") @db.Char(36)
   venueId        String            @map("venue_id") @db.Char(36)
-  startsAt       DateTime          @map("starts_at") @db.DateTime(3)
-  endsAt         DateTime          @map("ends_at") @db.DateTime(3)
+  startsAt       DateTime          @map("starts_at") @db.Timestamptz(3)
+  endsAt         DateTime          @map("ends_at") @db.Timestamptz(3)
   totalCostFils  Int               @map("total_cost_fils")
   notes          String?           @db.VarChar(500)
-  validUntil     DateTime?         @map("valid_until") @db.DateTime(3)
+  validUntil     DateTime?         @map("valid_until") @db.Timestamptz(3)
   status         VenueOptionStatus @default(PROPOSED)
   proposedById   String            @map("proposed_by_id") @db.Char(36)
-  decidedAt      DateTime?         @map("decided_at") @db.DateTime(3)
-  createdAt      DateTime          @default(now()) @map("created_at") @db.DateTime(3)
+  decidedAt      DateTime?         @map("decided_at") @db.Timestamptz(3)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
 
   arrangement VenueArrangement @relation(fields: [arrangementId], references: [id], onDelete: Cascade)
   venue       Venue            @relation(fields: [venueId], references: [id])
@@ -722,15 +722,15 @@ model VenueBooking {
   sessionId          String             @unique @map("session_id") @db.Char(36)
   venueId            String             @map("venue_id") @db.Char(36)
   venueOptionId      String?            @unique @map("venue_option_id") @db.Char(36)   // LFP approved option
-  startsAt           DateTime           @map("starts_at") @db.DateTime(3)
-  endsAt             DateTime           @map("ends_at") @db.DateTime(3)
+  startsAt           DateTime           @map("starts_at") @db.Timestamptz(3)
+  endsAt             DateTime           @map("ends_at") @db.Timestamptz(3)
   totalCostFils      Int                @map("total_cost_fils")
   bookingReference   String?            @map("booking_reference") @db.VarChar(80)       // optional (DEC-030)
   venuePaymentStatus VenuePaymentStatus @default(NOT_PAID) @map("venue_payment_status")
-  venuePaidAt        DateTime?          @map("venue_paid_at") @db.DateTime(3)
+  venuePaidAt        DateTime?          @map("venue_paid_at") @db.Timestamptz(3)
   recordedById       String             @map("recorded_by_id") @db.Char(36)
-  createdAt          DateTime           @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt          DateTime           @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt          DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   session     Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   venue       Venue        @relation(fields: [venueId], references: [id])
@@ -758,13 +758,13 @@ model Payment {
   refundedAmountFils Int            @default(0) @map("refunded_amount_fils")
   lastMethod         PaymentMethod? @map("last_method")
   lastReference      String?        @map("last_reference") @db.VarChar(80)
-  reportedAt         DateTime?      @map("reported_at") @db.DateTime(3)
-  paidAt             DateTime?      @map("paid_at") @db.DateTime(3)
-  waivedAt           DateTime?      @map("waived_at") @db.DateTime(3)
-  refundedAt         DateTime?      @map("refunded_at") @db.DateTime(3)
+  reportedAt         DateTime?      @map("reported_at") @db.Timestamptz(3)
+  paidAt             DateTime?      @map("paid_at") @db.Timestamptz(3)
+  waivedAt           DateTime?      @map("waived_at") @db.Timestamptz(3)
+  refundedAt         DateTime?      @map("refunded_at") @db.Timestamptz(3)
   version            Int            @default(0)
-  createdAt          DateTime       @default(now()) @map("created_at") @db.DateTime(3)
-  updatedAt          DateTime       @updatedAt @map("updated_at") @db.DateTime(3)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   session       Session               @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   participant   SessionParticipant    @relation(fields: [participantId], references: [id], onDelete: Cascade)
@@ -792,7 +792,7 @@ model PaymentConfirmation {
   method     PaymentMethod?
   reference  String?          @db.VarChar(80)
   note       String?          @db.VarChar(500)
-  createdAt  DateTime         @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
 
   payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
@@ -813,8 +813,8 @@ model PaymentDispute {
   resolutionNote      String?              @map("resolution_note") @db.VarChar(1000)
   resolvedById        String?              @map("resolved_by_id") @db.Char(36)
   openLock            String?              @unique @map("open_lock") @db.Char(36)   // = payment_id while OPEN
-  createdAt           DateTime             @default(now()) @map("created_at") @db.DateTime(3)
-  resolvedAt          DateTime?            @map("resolved_at") @db.DateTime(3)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  resolvedAt          DateTime?            @map("resolved_at") @db.Timestamptz(3)
 
   payment    Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
   openedBy   User    @relation("DisputeOpenedBy", fields: [openedById], references: [id])
@@ -838,9 +838,9 @@ model Notification {
   sessionId  String?          @map("session_id") @db.Char(36)
   actorId    String?          @map("actor_id") @db.Char(36)
   data       Json?
-  readAt     DateTime?        @map("read_at") @db.DateTime(3)
-  pushedAt   DateTime?        @map("pushed_at") @db.DateTime(3)
-  createdAt  DateTime         @default(now()) @map("created_at") @db.DateTime(3)
+  readAt     DateTime?        @map("read_at") @db.Timestamptz(3)
+  pushedAt   DateTime?        @map("pushed_at") @db.Timestamptz(3)
+  createdAt  DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user    User     @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor   User?    @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
@@ -856,10 +856,10 @@ model Review {
   sessionId  String   @map("session_id") @db.Char(36)
   reviewerId String   @map("reviewer_id") @db.Char(36)
   revieweeId String   @map("reviewee_id") @db.Char(36)
-  rating     Int      @db.TinyInt
+  rating     Int      @db.SmallInt
   comment    String?  @db.VarChar(500)
   isHidden   Boolean  @default(false) @map("is_hidden")
-  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   session  Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   reviewer User    @relation("Reviewer", fields: [reviewerId], references: [id])
@@ -880,8 +880,8 @@ model Report {
   status       ReportStatus     @default(OPEN)
   resolvedById String?          @map("resolved_by_id") @db.Char(36)
   resolution   String?          @db.VarChar(500)
-  createdAt    DateTime         @default(now()) @map("created_at") @db.DateTime(3)
-  resolvedAt   DateTime?        @map("resolved_at") @db.DateTime(3)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  resolvedAt   DateTime?        @map("resolved_at") @db.Timestamptz(3)
 
   reporter   User  @relation("Reporter", fields: [reporterId], references: [id])
   resolvedBy User? @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
@@ -902,9 +902,9 @@ model IdempotencyKey {
   requestHash  String   @map("request_hash") @db.Char(64)
   statusCode   Int?     @map("status_code") @db.SmallInt
   responseBody Json?    @map("response_body")
-  lockedUntil  DateTime @map("locked_until") @db.DateTime(3)
-  expiresAt    DateTime @map("expires_at") @db.DateTime(3)
-  createdAt    DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  lockedUntil  DateTime @map("locked_until") @db.Timestamptz(3)
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -917,7 +917,7 @@ model PlatformSetting {
   key         String   @id @db.VarChar(80)
   value       Json
   updatedById String?  @map("updated_by_id") @db.Char(36)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.DateTime(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 
@@ -934,7 +934,7 @@ model AdminAuditLog {
   before     Json?
   after      Json?
   ipAddress  String?  @map("ip_address") @db.VarChar(45)
-  createdAt  DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   actor User @relation(fields: [actorId], references: [id])
 

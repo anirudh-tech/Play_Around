@@ -7,19 +7,19 @@ UAE-first sports session platform. Players discover nearby games; organisers pub
 | `apps/mobile` | Expo SDK 58, React Native, Expo Router, NativeWind | Metro `http://localhost:8081` |
 | `apps/web` | Next.js 16, Tailwind CSS v4, shadcn-style UI | `http://localhost:3000` |
 | `apps/admin` | Next.js 16 (same UI stack) | `http://localhost:3001` |
-| `apps/api` | Node.js 26, Express 5, Prisma 7, MySQL 8.4 | `http://localhost:4000` · docs `/docs` |
+| `apps/api` | Node.js 26, Express 5, Prisma 7, PostgreSQL 16 | `http://localhost:4000` · docs `/docs` |
 
 Shared packages: `packages/contracts`, `packages/api-client`, `packages/design-tokens`, `packages/config`.
 
 ## Current status
 
-**Phase 10 – Testing and launch tooling: implemented locally, awaiting production gate.** Coverage on API services, Playwright/Maestro/k6, IDOR tests, secret scan. Legal routes are unpublished (L-05). Hosting, domain, stores (L-07–L-09) are not invented. Node.js 26.13.0. Local MySQL 8.4 via Colima. Git is not initialised yet.
+**Phase 10 – Testing and launch tooling: implemented locally, awaiting production gate.** Coverage on API services, Playwright/Maestro/k6, IDOR tests, secret scan. Legal routes are unpublished (L-05). Hosting, domain, stores (L-07–L-09) are not invented. Node.js 26.13.0. Local PostgreSQL 16 via Colima. Git is not initialised yet.
 
 ## Prerequisites
 
 1. [nvm](https://github.com/nvm-sh/nvm) (or equivalent) and Node.js **26.13.0** (`nvm install` from `.nvmrc`).
 2. pnpm **12.18.0** (`npm install -g pnpm@12.18.0` after `nvm use`).
-3. Colima + Docker CLI + Docker Compose plugin (MySQL 8.4 + Mailpit: `pnpm db:up`).
+3. Colima + Docker CLI + Docker Compose plugin (PostgreSQL 16 + Mailpit: `pnpm db:up`).
 
 ```sh
 cd playaround
@@ -32,17 +32,17 @@ cp apps/mobile/.env.example apps/mobile/.env
 pnpm dev
 ```
 
-Start MySQL before or after the apps:
+Start PostgreSQL before or after the apps:
 
 ```sh
-pnpm db:up        # MySQL :3306, Mailpit UI :8025
+pnpm db:up        # Postgres :5433, Mailpit UI :8025
 pnpm db:migrate
 pnpm db:seed
 ```
 
-`/api/v1/health/ready` should then report `database: up`. Without MySQL the API still boots and readiness reports `database: down`.
+`/api/v1/health/ready` should then report `database: up`. Without Postgres the API still boots and readiness reports `database: down`.
 
-Inspect tables in Cursor **Database Client** with a **new** MySQL connection (do not reuse `sportssite`): host `127.0.0.1`, port `3306`, user/password/database `playaround`, **SSL off**. If login fails, add JDBC params `allowPublicKeyRetrieval=true&useSSL=false`.
+Inspect tables in Cursor **Database Client** with a **new** PostgreSQL connection: host `127.0.0.1`, port `5433`, user/password/database `playaround`, **SSL off**. Local Docker maps **5433** because macOS often already has Postgres on 5432.
 
 Auth locally: `POST /api/v1/auth/register` then check Mailpit at http://localhost:8025 for the verification code. Staff seed (after `pnpm db:seed`): `admin@playaround.local` / `PlayAroundAdmin1` — first admin login returns TOTP enrolment. Google/Apple stay unconfigured until client IDs are set. SMS OTPs are logged, not sent (O-13).
 
@@ -60,7 +60,7 @@ Discover nearby: `GET /api/v1/sessions/nearby?lat=&lng=` (auth required). Defaul
 | `pnpm test:coverage` | API service coverage (80% threshold) |
 | `pnpm test:e2e` | Playwright (apps must be running) |
 | `pnpm secrets:scan` / `pnpm audit` | Credential patterns / prod dependency audit |
-| `pnpm db:up` / `db:down` | MySQL 8.4 + Mailpit |
+| `pnpm db:up` / `db:down` | PostgreSQL 16 + Mailpit |
 | `pnpm db:migrate` / `db:seed` | Prisma migrate and seed |
 | `pnpm --filter @playaround/api db:seed:discovery` | Optional 100k-session load seed for nearby p95 |
 

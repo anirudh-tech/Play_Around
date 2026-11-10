@@ -10,7 +10,7 @@ import { createMemorySms } from '../src/lib/sms';
 
 export const TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ??
-  'mysql://playaround:playaround@127.0.0.1:3306/playaround_test';
+  'postgresql://playaround:playaround@127.0.0.1:5433/playaround_test';
 
 const logger = pino({ level: 'silent' });
 
@@ -68,9 +68,7 @@ export async function resetDb(db: Database) {
     'user_profiles',
     'users',
   ];
-  for (const table of tables) {
-    await db.$executeRawUnsafe(`DELETE FROM \`${table}\``);
-  }
+  await db.$executeRawUnsafe(`TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE`);
 }
 
 export function createTestApp() {

@@ -1,26 +1,22 @@
 name: playaround
 
 services:
-  mysql:
-    image: mysql:8.4
+  postgres:
+    image: postgres:16
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: playaround
-      MYSQL_USER: playaround
-      MYSQL_PASSWORD: playaround
-      MYSQL_ROOT_PASSWORD: playaround-root
+      POSTGRES_DB: playaround
+      POSTGRES_USER: playaround
+      POSTGRES_PASSWORD: playaround
       TZ: UTC
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_0900_ai_ci
-      - --default-time-zone=+00:00
     ports:
-      - '3306:3306'
+      # Host 5432 is often taken by Postgres.app / EDB / Homebrew. Container stays 5432.
+      - '5433:5432'
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
       - ../database/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-uroot', '-pplayaround-root']
+      test: ['CMD-SHELL', 'pg_isready -U playaround -d playaround']
       interval: 5s
       timeout: 3s
       retries: 20
@@ -33,4 +29,4 @@ services:
       - '8025:8025' # web UI
 
 volumes:
-  mysql-data:
+  postgres-data:

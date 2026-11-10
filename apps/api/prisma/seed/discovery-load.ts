@@ -94,7 +94,7 @@ export async function seedDiscoveryLoad(db: Database, total = 100_000) {
       const venueCol = pending ? 'NULL' : `'${venue.id}'`;
       const stamp = start.toISOString().slice(0, 23).replace('T', ' ');
       const endStamp = end.toISOString().slice(0, 23).replace('T', ' ');
-      return `('${id}','${organiser.id}',${sport.id},'${type}','OPEN','${venueStatus}','PUBLIC',${venueCol},${point.latitude.toFixed(6)},${point.longitude.toFixed(6)},'${precision}',${area},'${stamp}','${endStamp}',4,1,'AED',${est},${estShare},${confirmed},${shareCol},'${LOAD_TITLE}',0,NOW(3),NOW(3))`;
+      return `('${id}','${organiser.id}',${sport.id},'${type}','OPEN','${venueStatus}','PUBLIC',${venueCol},${point.latitude.toFixed(6)},${point.longitude.toFixed(6)},'${precision}',${area},'${stamp}','${endStamp}',4,1,'AED',${est},${estShare},${confirmed},${shareCol},'${LOAD_TITLE}',0,NOW(),NOW())`;
     });
     await db.$executeRawUnsafe(`
       INSERT INTO sessions (
