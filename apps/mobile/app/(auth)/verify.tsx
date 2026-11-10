@@ -27,7 +27,7 @@ export default function VerifyScreen() {
     <Screen>
       <Title>Verify email</Title>
       <Muted>
-        We emailed a 6-digit code to the address you signed up with. Check spam if you do not see “Your PlayAround signup code”.
+        Enter the 6-digit code from email. Verify checks the code; use Resend code if nothing arrived.
       </Muted>
       {error ? <Banner text={error} /> : null}
       {info ? <Banner text={info} tone="info" /> : null}

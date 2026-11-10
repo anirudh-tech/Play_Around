@@ -87,11 +87,13 @@ describe.skipIf(!dbUp)('auth', () => {
 
   it('logs in and rotates refresh tokens, then detects reuse', async () => {
     await register('rotate@example.com');
+    const mailed = mailer.outbox.length;
     const login = await request(app)
       .post('/api/v1/auth/login')
       .set('X-Client', 'ios')
       .send({ email: 'rotate@example.com', password: 'correcthorsebattery' })
       .expect(200);
+    expect(mailer.outbox.length).toBe(mailed + 1);
     const first = login.body.data.refreshToken as string;
     const rotated = await request(app)
       .post('/api/v1/auth/refresh')

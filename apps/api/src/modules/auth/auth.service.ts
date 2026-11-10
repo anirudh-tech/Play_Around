@@ -285,6 +285,13 @@ export async function login(
   }
   const ok = await verifyPassword(user.passwordHash, input.password);
   if (!ok) throw new AppError('UNAUTHENTICATED', 'Invalid email or password.');
+  if (!user.emailVerifiedAt) {
+    try {
+      await resendVerification(ctx, user.id);
+    } catch (err) {
+      if (!(err instanceof AppError && err.code === 'RATE_LIMITED')) throw err;
+    }
+  }
   return issueSession(ctx, user, res, client, 'app');
 }
 
