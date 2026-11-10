@@ -69,8 +69,11 @@ export function createApp(deps: AppDeps): Express {
   app.use(cookieParser());
   app.use(parseClient);
 
+  const health = createHealthRouter({ version: env.APP_VERSION, checkDatabase });
+  app.use(health);
+
   const v1 = express.Router();
-  v1.use(createHealthRouter({ version: env.APP_VERSION, checkDatabase }));
+  v1.use(health);
 
   if (deps.db && deps.mailer && deps.sms && deps.oauth) {
     const authEnv = env as Env;

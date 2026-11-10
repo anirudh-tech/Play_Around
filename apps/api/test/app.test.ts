@@ -16,9 +16,11 @@ function makeApp(databaseUp = true) {
 
 describe('health', () => {
   it('reports liveness', async () => {
-    const res = await request(makeApp()).get('/api/v1/health').expect(200);
+    const app = makeApp();
+    const res = await request(app).get('/api/v1/health').expect(200);
     const body = HealthResponse.parse(res.body);
     expect(body.data.version).toBe('9.9.9');
+    await request(app).get('/health').expect(200);
   });
 
   it('reports ready when the database is reachable', async () => {
