@@ -40,6 +40,11 @@ describe('error envelope', () => {
     expect(ApiErrorBody.parse(res.body).error.code).toBe('NOT_FOUND');
   });
 
+  it('hints /api/v1 when the version prefix is missing', async () => {
+    const res = await request(makeApp()).get('/auth/login').expect(404);
+    expect(res.body.error.message).toContain('/api/v1/auth/login');
+  });
+
   it('returns VALIDATION_ERROR for malformed JSON', async () => {
     const res = await request(makeApp())
       .post('/api/v1/health')
