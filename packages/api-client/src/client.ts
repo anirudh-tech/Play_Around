@@ -53,6 +53,9 @@ import {
 } from '@playaround/contracts';
 import { ApiErrorBody, HealthResponse, ReadinessResponse } from '@playaround/contracts';
 import { z } from 'zod';
+import { normalizeApiBaseUrl } from './base-url';
+
+export { normalizeApiBaseUrl } from './base-url';
 
 export type ClientKind = 'ios' | 'android' | 'web' | 'admin';
 
@@ -148,14 +151,6 @@ const PublicProfileResponse = z.object({
 
 function idempotencyKey() {
   return globalThis.crypto?.randomUUID?.() ?? `idemp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-/** Accept host-only Render URLs or an explicit `/api/v1` prefix. */
-export function normalizeApiBaseUrl(raw: string): string {
-  const trimmed = raw.trim().replace(/\/+$/, '');
-  if (!trimmed) return trimmed;
-  if (/\/api\/v1$/i.test(trimmed)) return trimmed;
-  return `${trimmed}/api/v1`;
 }
 
 export function createApiClient(options: ApiClientOptions) {

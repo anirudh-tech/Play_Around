@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SessionSummaryResponse } from '@playaround/contracts';
-import { normalizeApiBaseUrl } from '@playaround/api-client';
+import { normalizeApiBaseUrl } from '@playaround/api-client/base-url';
 import Link from 'next/link';
 import { Chrome } from '@/components/chrome';
 import { when, shareLabel } from '@/lib/format';

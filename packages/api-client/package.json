@@ -5,7 +5,8 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./base-url": "./src/base-url.ts"
   },
   "scripts": {
     "lint": "eslint .",

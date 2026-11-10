@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApiClientError, createApiClient, normalizeApiBaseUrl } from './client';
+import { normalizeApiBaseUrl } from './base-url';
+import { ApiClientError, createApiClient } from './client';
 
 const jsonResponse = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
