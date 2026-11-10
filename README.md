@@ -44,7 +44,7 @@ pnpm db:seed
 
 Inspect tables in Cursor **Database Client** with a **new** PostgreSQL connection: host `127.0.0.1`, port `5433`, user/password/database `playaround`, **SSL off**. Local Docker maps **5433** because macOS often already has Postgres on 5432.
 
-Auth locally: `POST /api/v1/auth/register` then check Mailpit at http://localhost:8025 for the verification code. On Render, set `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`, `MAIL_USER`, `MAIL_PASSWORD` (Gmail App Password), and `MAIL_FROM` to that address so signup codes go to the user’s inbox. Staff seed (after `pnpm db:seed`): `admin@playaround.local` / `PlayAroundAdmin1` — first admin login returns TOTP enrolment. Google/Apple stay unconfigured until client IDs are set. SMS OTPs are logged, not sent (O-13).
+Auth locally: `POST /api/v1/auth/register` then check Mailpit at http://localhost:8025 for the verification code. Render blocks outbound SMTP (Gmail times out); set `MAIL_RESEND_API_KEY` and `MAIL_FROM=PlayAround <beth.t@example.com>` (or a domain verified in Resend). Staff seed (after `pnpm db:seed`): `admin@playaround.local` / `PlayAroundAdmin1` — first admin login returns TOTP enrolment. Google/Apple stay unconfigured until client IDs are set. SMS OTPs are logged, not sent (O-13).
 
 Sessions: verified phone to publish, verified email to join. `EXISTING_BOOKING` is joinable immediately; `LOOKING_FOR_PLAYERS` needs a staff venue option, organiser approval, then `venue-booking`. Mutations that create or join a session need an `Idempotency-Key` header. Payments stay offline records only.
 

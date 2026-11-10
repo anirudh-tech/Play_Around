@@ -4,7 +4,7 @@ import { loadEnv } from './config/env';
 import { createEventBus } from './lib/event-bus';
 import { createJobRunner } from './lib/job-runner';
 import { createLogger } from './lib/logger';
-import { createSmtpMailer } from './lib/mailer';
+import { createMailer } from './lib/mailer';
 import { createOauthVerifier } from './lib/oauth';
 import { checkDatabase, createPrismaClient } from './lib/prisma';
 import { createExpoPush } from './lib/push';
@@ -18,7 +18,7 @@ const logger = createLogger(env);
 const db = createPrismaClient(env.DATABASE_URL);
 const events = createEventBus(logger);
 const jobs = createJobRunner(logger);
-const mailer = createSmtpMailer(env, logger);
+const mailer = createMailer(env, logger);
 const sms = createConsoleSms(logger);
 const oauth = createOauthVerifier(env);
 

@@ -39,6 +39,10 @@ const EnvSchema = z.object({
     .string()
     .optional()
     .transform((value) => value?.replace(/\s+/g, '') || undefined),
+  MAIL_RESEND_API_KEY: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
   GOOGLE_CLIENT_IDS: z
     .string()
     .default('')

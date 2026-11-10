@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadEnv } from '../src/config/env';
 import { createEventBus } from '../src/lib/event-bus';
 import { createJobRunner } from '../src/lib/job-runner';
-import { smtpTransportOptions } from '../src/lib/mailer';
+import { createResendMailer, smtpTransportOptions } from '../src/lib/mailer';
 import { otpEmail } from '../src/lib/otp-email';
 import { poolSslFromDatabaseUrl } from '../src/lib/prisma';
 
@@ -52,6 +52,31 @@ describe('otpEmail', () => {
     expect(mail.text).toContain('482193');
     expect(mail.html).toContain('482193');
     expect(mail.html).toContain('PLAYAROUND');
+  });
+});
+
+describe('createResendMailer', () => {
+  it('posts to the Resend HTTP API', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', { status: 200 }));
+    const env = loadEnv({
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+      MAIL_FROM: 'PlayAround <beth.t@example.com>',
+      MAIL_RESEND_API_KEY: 're_test',
+    });
+    const mailer = createResendMailer(env, logger, fetchMock);
+    await mailer.send({ to: 'user@example.com', subject: 'Your PlayAround signup code', text: 'code 123456' });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe('https://api.resend.com/emails');
+    expect(init).toMatchObject({
+      method: 'POST',
+      headers: { Authorization: 'Bearer re_test' },
+    });
+    expect(JSON.parse(String(init?.body))).toMatchObject({
+      from: 'PlayAround <beth.t@example.com>',
+      to: ['user@example.com'],
+      subject: 'Your PlayAround signup code',
+    });
   });
 });
 
