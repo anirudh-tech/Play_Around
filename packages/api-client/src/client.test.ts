@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ApiClientError, createApiClient } from './client';
+import { ApiClientError, createApiClient, normalizeApiBaseUrl } from './client';
 
 const jsonResponse = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -15,6 +15,17 @@ function makeClient(response: Response) {
   });
   return { client, fetchMock };
 }
+
+describe('normalizeApiBaseUrl', () => {
+  it('appends /api/v1 when the host-only Render URL is used', () => {
+    expect(normalizeApiBaseUrl('https://play-around-bikf.onrender.com')).toBe(
+      'https://play-around-bikf.onrender.com/api/v1',
+    );
+    expect(normalizeApiBaseUrl('https://play-around-bikf.onrender.com/api/v1/')).toBe(
+      'https://play-around-bikf.onrender.com/api/v1',
+    );
+  });
+});
 
 describe('createApiClient', () => {
   it('sends client headers and parses the data envelope', async () => {

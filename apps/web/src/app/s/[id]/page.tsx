@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { SessionSummaryResponse } from '@playaround/contracts';
+import { normalizeApiBaseUrl } from '@playaround/api-client';
 import Link from 'next/link';
 import { Chrome } from '@/components/chrome';
 import { when, shareLabel } from '@/lib/format';
 
-const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const base = normalizeApiBaseUrl(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1');
 
 async function load(id: string) {
   const res = await fetch(`${base}/sessions/${id}`, { next: { revalidate: 30 } });

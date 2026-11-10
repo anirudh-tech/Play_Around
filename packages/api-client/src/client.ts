@@ -150,9 +150,17 @@ function idempotencyKey() {
   return globalThis.crypto?.randomUUID?.() ?? `idemp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+/** Accept host-only Render URLs or an explicit `/api/v1` prefix. */
+export function normalizeApiBaseUrl(raw: string): string {
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  if (!trimmed) return trimmed;
+  if (/\/api\/v1$/i.test(trimmed)) return trimmed;
+  return `${trimmed}/api/v1`;
+}
+
 export function createApiClient(options: ApiClientOptions) {
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
-  const baseUrl = options.baseUrl.replace(/\/+$/, '');
+  const baseUrl = normalizeApiBaseUrl(options.baseUrl);
   let refreshInFlight: Promise<boolean> | null = null;
 
   async function request<T extends z.ZodType>(
