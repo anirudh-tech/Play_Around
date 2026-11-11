@@ -13,7 +13,7 @@ const EnvSchema = z.object({
     .transform((value) =>
       value
         .split(',')
-        .map((origin) => origin.trim())
+        .map((origin) => origin.trim().replace(/^['"]+|['"]+$/g, '').replace(/\/+$/, ''))
         .filter(Boolean),
     ),
   JOBS_ENABLED: z.stringbool().default(true),

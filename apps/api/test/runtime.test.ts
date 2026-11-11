@@ -14,10 +14,10 @@ describe('loadEnv', () => {
   it('applies defaults and splits CORS origins', () => {
     const env = loadEnv({
       DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
-      CORS_ORIGINS: 'http://a.test, http://b.test',
+      CORS_ORIGINS: 'http://a.test, http://b.test/, "https://c.test/"',
     });
     expect(env.PORT).toBe(4000);
-    expect(env.CORS_ORIGINS).toEqual(['http://a.test', 'http://b.test']);
+    expect(env.CORS_ORIGINS).toEqual(['http://a.test', 'http://b.test', 'https://c.test']);
     expect(env.JOBS_ENABLED).toBe(true);
     expect(env.MAIL_USER).toBeUndefined();
   });
