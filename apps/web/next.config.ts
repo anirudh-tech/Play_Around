@@ -9,7 +9,7 @@ if (process.env.VERCEL && (!apiUrl.trim() || apiUrl.includes('localhost'))) {
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@playaround/api-client', '@playaround/contracts', '@playaround/design-tokens'],
+  transpilePackages: ['@playaround/api-client', '@playaround/contracts', '@playaround/design-tokens', '@clerk/nextjs'],
 };
 
 export default nextConfig;

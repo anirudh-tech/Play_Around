@@ -6,6 +6,7 @@ import { AppError } from '../../lib/errors';
 import { hashSecret, randomToken, sixDigitCode } from '../../lib/hash';
 import type { Mailer } from '../../lib/mailer';
 import { otpEmail } from '../../lib/otp-email';
+import type { ClerkVerifier } from '../../lib/clerk';
 import type { OauthVerifier, SocialProfile } from '../../lib/oauth';
 import { hashPassword, verifyPassword } from '../../lib/password';
 import type { Database } from '../../lib/prisma';
@@ -39,6 +40,7 @@ export interface AuthContext {
   env: Env;
   mailer: Mailer;
   oauth: OauthVerifier;
+  clerk?: ClerkVerifier;
   now: () => Date;
 }
 
@@ -259,11 +261,14 @@ export async function register(
     data: {
       email: input.email,
       passwordHash,
+      emailVerifiedAt: ctx.env.AUTH_SKIP_EMAIL_VERIFY ? ctx.now() : null,
       profile: { create: { displayName: input.displayName } },
     },
     include: { profile: true, identities: true },
   });
-  await issueEmailCode(ctx, user.id, user.email, 'EMAIL_VERIFY');
+  if (!ctx.env.AUTH_SKIP_EMAIL_VERIFY) {
+    await issueEmailCode(ctx, user.id, user.email, 'EMAIL_VERIFY');
+  }
   return issueSession(ctx, user, res, client, 'app');
 }
 
@@ -285,7 +290,7 @@ export async function login(
   }
   const ok = await verifyPassword(user.passwordHash, input.password);
   if (!ok) throw new AppError('UNAUTHENTICATED', 'Invalid email or password.');
-  if (!user.emailVerifiedAt) {
+  if (!user.emailVerifiedAt && !ctx.env.AUTH_SKIP_EMAIL_VERIFY) {
     try {
       await resendVerification(ctx, user.id);
     } catch (err) {
@@ -293,6 +298,17 @@ export async function login(
     }
   }
   return issueSession(ctx, user, res, client, 'app');
+}
+
+export async function clerkSignIn(
+  ctx: AuthContext,
+  sessionToken: string,
+  res: Response,
+  client: ClientKind,
+) {
+  if (!ctx.clerk) throw new AppError('SERVICE_UNAVAILABLE', 'Clerk is not configured.');
+  const profile = await ctx.clerk.profileFromSession(sessionToken);
+  return socialSignIn(ctx, profile, res, client);
 }
 
 export async function socialSignIn(

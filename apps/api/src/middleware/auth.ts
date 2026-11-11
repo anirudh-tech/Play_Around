@@ -15,6 +15,21 @@ export interface AuthedUser {
   status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
 }
 
+export function createRequireVerifiedEmail(env: Pick<Env, 'AUTH_SKIP_EMAIL_VERIFY'>): RequestHandler {
+  return (_req, res, next) => {
+    if (env.AUTH_SKIP_EMAIL_VERIFY) {
+      next();
+      return;
+    }
+    const auth = res.locals.auth;
+    if (!auth?.emailVerifiedAt) {
+      next(new AppError('EMAIL_NOT_VERIFIED', 'Verify your email first.'));
+      return;
+    }
+    next();
+  };
+}
+
 export function createRequireAuth(env: Pick<Env, 'JWT_SECRET'>, db: Database): RequestHandler {
   return async (req, res, next) => {
     try {

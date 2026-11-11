@@ -1,5 +1,6 @@
 import {
   AppleAuthBody,
+  ClerkAuthBody,
   ForgotPasswordBody,
   GoogleAuthBody,
   IdentityProviderParams,
@@ -13,6 +14,7 @@ import {
 import { Router } from 'express';
 import type { Env } from '../../config/env';
 import type { Mailer } from '../../lib/mailer';
+import type { ClerkVerifier } from '../../lib/clerk';
 import type { OauthVerifier } from '../../lib/oauth';
 import type { Database } from '../../lib/prisma';
 import { createRequireAuth } from '../../middleware/auth';
@@ -26,11 +28,19 @@ export interface AuthRouteDeps {
   db: Database;
   mailer: Mailer;
   oauth: OauthVerifier;
+  clerk?: ClerkVerifier;
   now?: () => Date;
 }
 
 function ctx(deps: AuthRouteDeps): auth.AuthContext {
-  return { db: deps.db, env: deps.env, mailer: deps.mailer, oauth: deps.oauth, now: deps.now ?? (() => new Date()) };
+  return {
+    db: deps.db,
+    env: deps.env,
+    mailer: deps.mailer,
+    oauth: deps.oauth,
+    clerk: deps.clerk,
+    now: deps.now ?? (() => new Date()),
+  };
 }
 
 function presentedRefresh(req: { cookies?: Record<string, string>; body?: { refreshToken?: string } }, admin = false) {
@@ -53,6 +63,12 @@ export function createAuthRouter(deps: AuthRouteDeps): Router {
   router.post('/auth/login', burst, validate({ body: LoginBody }), async (req, res) => {
     const body = res.locals.validated!.body as LoginBody;
     const data = await auth.login(c(), body, res, res.locals.client ?? 'web');
+    res.json({ data });
+  });
+
+  router.post('/auth/clerk', burst, validate({ body: ClerkAuthBody }), async (req, res) => {
+    const body = res.locals.validated!.body as ClerkAuthBody;
+    const data = await auth.clerkSignIn(c(), body.sessionToken, res, res.locals.client ?? 'web');
     res.json({ data });
   });
 

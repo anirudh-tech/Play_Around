@@ -67,6 +67,11 @@ export const GoogleAuthBody = z.object({
 });
 export type GoogleAuthBody = z.infer<typeof GoogleAuthBody>;
 
+export const ClerkAuthBody = z.object({
+  sessionToken: z.string().min(1),
+});
+export type ClerkAuthBody = z.infer<typeof ClerkAuthBody>;
+
 export const AppleAuthBody = z.object({
   identityToken: z.string().min(1),
   authorizationCode: z.string().min(1).optional(),

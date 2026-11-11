@@ -39,6 +39,10 @@ const EnvSchema = z.object({
     .string()
     .optional()
     .transform((value) => value?.replace(/\s+/g, '') || undefined),
+  MAIL_RESEND_API_KEY: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
   GOOGLE_CLIENT_IDS: z
     .string()
     .default('')
@@ -61,6 +65,15 @@ const EnvSchema = z.object({
   STAFF_SEED_PASSWORD: z.string().default('PlayAroundAdmin1'),
   EXPO_ACCESS_TOKEN: z.string().optional(),
   RATE_LIMIT_DISABLED: z.stringbool().optional(),
+  AUTH_SKIP_EMAIL_VERIFY: z.stringbool().default(false),
+  CLERK_SECRET_KEY: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
+  CLERK_PUBLISHABLE_KEY: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim() || undefined),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

@@ -44,7 +44,7 @@ pnpm db:seed
 
 Inspect tables in Cursor **Database Client** with a **new** PostgreSQL connection: host `127.0.0.1`, port `5433`, user/password/database `playaround`, **SSL off**. Local Docker maps **5433** because macOS often already has Postgres on 5432.
 
-Auth locally: `POST /api/v1/auth/register` then check Mailpit at http://localhost:8025 for the PlayAround HTML verification code. Staff seed (after `pnpm db:seed`): `admin@playaround.local` / `PlayAroundAdmin1` — first admin login returns TOTP enrolment. Google/Apple stay unconfigured until client IDs are set. SMS OTPs are logged, not sent (O-13). Render blocks outbound SMTP, so Gmail via nodemailer will time out there.
+Auth locally: `POST /api/v1/auth/register` then check Mailpit at http://localhost:8025 for the PlayAround HTML verification code. Web Google sign-in uses Clerk (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` on Vercel; `CLERK_SECRET_KEY` + `CLERK_PUBLISHABLE_KEY` on Render). For this test deploy set `AUTH_SKIP_EMAIL_VERIFY=true` on the API so password users skip email OTP. Staff seed (after `pnpm db:seed`): `admin@playaround.local` / `PlayAroundAdmin1` — first admin login returns TOTP enrolment. SMS OTPs are logged, not sent (O-13).
 
 Sessions: verified phone to publish, verified email to join. `EXISTING_BOOKING` is joinable immediately; `LOOKING_FOR_PLAYERS` needs a staff venue option, organiser approval, then `venue-booking`. Mutations that create or join a session need an `Idempotency-Key` header. Payments stay offline records only.
 

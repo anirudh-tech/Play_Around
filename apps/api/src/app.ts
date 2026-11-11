@@ -8,6 +8,7 @@ import type { Env } from './config/env';
 import { createDocsRouter } from './docs/openapi';
 import type { Logger } from './lib/logger';
 import type { Mailer } from './lib/mailer';
+import type { ClerkVerifier } from './lib/clerk';
 import type { OauthVerifier } from './lib/oauth';
 import type { Database } from './lib/prisma';
 import type { SmsGateway } from './lib/sms';
@@ -31,6 +32,7 @@ export interface AppDeps {
   mailer?: Mailer;
   sms?: SmsGateway;
   oauth?: OauthVerifier;
+  clerk?: ClerkVerifier;
   now?: () => Date;
 }
 
@@ -82,6 +84,7 @@ export function createApp(deps: AppDeps): Express {
       db: deps.db,
       mailer: deps.mailer,
       oauth: deps.oauth,
+      clerk: deps.clerk,
       now: deps.now,
     };
     const clock = deps.now ?? (() => new Date());

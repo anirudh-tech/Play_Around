@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Chrome } from '@/components/chrome';
+import { GoogleSignInButton } from '@/components/google-sign-in';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -36,7 +37,7 @@ export default function RegisterPage() {
                 refreshToken: result.data.refreshToken,
                 user: result.data.user,
               });
-              router.push('/verify');
+              router.push(result.data.user.emailVerifiedAt ? '/discover' : '/verify');
             })
             .catch((err) => {
               inFlight.current = false;
@@ -53,6 +54,7 @@ export default function RegisterPage() {
         <Button className="mt-5 w-full" disabled={pending} type="submit">
           Create account
         </Button>
+        <GoogleSignInButton />
       </form>
     </Chrome>
   );

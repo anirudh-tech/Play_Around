@@ -1,9 +1,10 @@
 import { pino } from 'pino';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { loadEnv } from '../src/config/env';
+import { clerkFrontendApiHost } from '../src/lib/clerk';
 import { createEventBus } from '../src/lib/event-bus';
 import { createJobRunner } from '../src/lib/job-runner';
-import { smtpTransportOptions } from '../src/lib/mailer';
+import { createResendMailer, smtpTransportOptions } from '../src/lib/mailer';
 import { otpEmail } from '../src/lib/otp-email';
 import { poolSslFromDatabaseUrl } from '../src/lib/prisma';
 
@@ -45,6 +46,14 @@ describe('loadEnv', () => {
   });
 });
 
+describe('clerkFrontendApiHost', () => {
+  it('decodes a Clerk publishable key', () => {
+    const host = 'playaround.clerk.accounts.dev';
+    const key = `pk_test_${Buffer.from(`${host}$`).toString('base64')}`;
+    expect(clerkFrontendApiHost(key)).toBe(host);
+  });
+});
+
 describe('otpEmail', () => {
   it('puts the signup code in text and html', () => {
     const mail = otpEmail('EMAIL_VERIFY', '482193', 60);
@@ -52,6 +61,29 @@ describe('otpEmail', () => {
     expect(mail.text).toContain('482193');
     expect(mail.html).toContain('482193');
     expect(mail.html).toContain('PLAYAROUND');
+  });
+});
+
+describe('createResendMailer', () => {
+  it('posts our HTML template to the Resend HTTP API', async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', { status: 200 }));
+    const env = loadEnv({
+      DATABASE_URL: 'postgresql://u:p@localhost:5432/db',
+      MAIL_FROM: 'PlayAround <beth.t@example.com>',
+      MAIL_RESEND_API_KEY: 're_test',
+    });
+    const html = otpEmail('EMAIL_VERIFY', '482193', 60).html;
+    const mailer = createResendMailer(env, logger, fetchMock);
+    await mailer.send({
+      to: 'playaround1001@gmail.com',
+      subject: 'Your PlayAround signup code',
+      text: 'code 482193',
+      html,
+    });
+    const body = JSON.parse(String(fetchMock.mock.calls[0]![1]?.body));
+    expect(String(fetchMock.mock.calls[0]![0])).toBe('https://api.resend.com/emails');
+    expect(body.html).toContain('PLAYAROUND');
+    expect(body.html).toContain('482193');
   });
 });
 

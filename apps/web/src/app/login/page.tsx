@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { Chrome } from '@/components/chrome';
+import { GoogleSignInButton } from '@/components/google-sign-in';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -55,6 +56,7 @@ export default function LoginPage() {
         <Button className="mt-5 w-full" disabled={pending} type="submit">
           Sign in
         </Button>
+        <GoogleSignInButton />
         <p className="mt-4 text-sm">
           <Link className="text-primary" href="/register">
             Create an account
@@ -65,7 +67,7 @@ export default function LoginPage() {
           </Link>
         </p>
         <p className="mt-3 text-xs text-text-muted">
-          Google and Apple sign-in need OAuth client IDs, which are not configured locally.
+          Google sign-in uses Clerk when NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is set.
         </p>
       </form>
     </Chrome>

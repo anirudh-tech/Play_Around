@@ -275,6 +275,8 @@ export function createApiClient(options: ApiClientOptions) {
         request('/auth/login', AuthTokensResponse, { method: 'POST', body }).then(saveAuth),
       google: (idToken: string) =>
         request('/auth/google', AuthTokensResponse, { method: 'POST', body: { idToken } }).then(saveAuth),
+      clerk: (sessionToken: string) =>
+        request('/auth/clerk', AuthTokensResponse, { method: 'POST', body: { sessionToken } }).then(saveAuth),
       apple: (identityToken: string, fullName?: string) =>
         request('/auth/apple', AuthTokensResponse, {
           method: 'POST',

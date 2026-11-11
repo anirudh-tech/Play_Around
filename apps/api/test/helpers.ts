@@ -3,6 +3,7 @@ import { createApp } from '../src/app';
 import { loadEnv } from '../src/config/env';
 import { createMemoryMailer } from '../src/lib/mailer';
 import type { OauthVerifier, SocialProfile } from '../src/lib/oauth';
+import type { ClerkVerifier } from '../src/lib/clerk';
 import { checkDatabase, createPrismaClient, type Database } from '../src/lib/prisma';
 import { createMemoryPush } from '../src/lib/push';
 import { configureRealtime } from '../src/lib/realtime';
@@ -71,13 +72,14 @@ export async function resetDb(db: Database) {
   await db.$executeRawUnsafe(`TRUNCATE TABLE ${tables.join(', ')} RESTART IDENTITY CASCADE`);
 }
 
-export function createTestApp() {
+export function createTestApp(options: { clerk?: ClerkVerifier; env?: NodeJS.ProcessEnv } = {}) {
   const env = loadEnv({
     NODE_ENV: 'test',
     DATABASE_URL: TEST_DATABASE_URL,
     LOG_LEVEL: 'silent',
     RATE_LIMIT_DISABLED: 'true',
     COOKIE_SECURE: 'false',
+    ...options.env,
   });
   const db = createPrismaClient(env.DATABASE_URL);
   const mailer = createMemoryMailer();
@@ -91,6 +93,7 @@ export function createTestApp() {
     mailer,
     sms,
     oauth: stubOauth,
+    clerk: options.clerk,
     checkDatabase: () => checkDatabase(db),
   });
   return { app, db, env, mailer, sms, push };

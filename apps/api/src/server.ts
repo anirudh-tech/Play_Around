@@ -4,7 +4,8 @@ import { loadEnv } from './config/env';
 import { createEventBus } from './lib/event-bus';
 import { createJobRunner } from './lib/job-runner';
 import { createLogger } from './lib/logger';
-import { createSmtpMailer } from './lib/mailer';
+import { createMailer } from './lib/mailer';
+import { createClerkVerifier } from './lib/clerk';
 import { createOauthVerifier } from './lib/oauth';
 import { checkDatabase, createPrismaClient } from './lib/prisma';
 import { createExpoPush } from './lib/push';
@@ -18,9 +19,10 @@ const logger = createLogger(env);
 const db = createPrismaClient(env.DATABASE_URL);
 const events = createEventBus(logger);
 const jobs = createJobRunner(logger);
-const mailer = createSmtpMailer(env, logger);
+const mailer = createMailer(env, logger);
 const sms = createConsoleSms(logger);
 const oauth = createOauthVerifier(env);
+const clerk = createClerkVerifier(env);
 
 for (const job of sessionJobs(db)) jobs.register(job);
 jobs.register(reminderJob(db));
@@ -32,6 +34,7 @@ const app = createApp({
   mailer,
   sms,
   oauth,
+  clerk,
   checkDatabase: () => checkDatabase(db, 8_000, (err) => logger.warn({ err }, 'database ping failed')),
 });
 

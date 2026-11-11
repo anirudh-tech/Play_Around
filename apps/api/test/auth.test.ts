@@ -405,3 +405,44 @@ describe.skipIf(!dbUp)('admin auth', () => {
     expect(res.body.error.code).toBe('STAFF_ROLE_REQUIRED');
   });
 });
+
+describe.skipIf(!dbUp)('auth clerk and skip email verify', () => {
+  it('skips OTP when AUTH_SKIP_EMAIL_VERIFY is set', async () => {
+    const { app, db, mailer } = createTestApp({ env: { AUTH_SKIP_EMAIL_VERIFY: 'true' } });
+    await resetDb(db);
+    const res = await request(app)
+      .post('/api/v1/auth/register')
+      .set('X-Client', 'ios')
+      .send({ email: 'skip@example.com', password: 'correcthorsebattery', displayName: 'Skip' })
+      .expect(201);
+    expect(res.body.data.user.emailVerifiedAt).toBeTruthy();
+    expect(mailer.outbox).toHaveLength(0);
+    await db.$disconnect();
+  });
+
+  it('creates a PlayAround session from a Clerk Google profile', async () => {
+    const { app, db } = createTestApp({
+      clerk: {
+        async profileFromSession(sessionToken) {
+          if (sessionToken !== 'sess_ok') throw new Error('bad session');
+          return {
+            provider: 'GOOGLE',
+            providerUserId: 'google-clerk-1',
+            email: 'clerk-google@example.com',
+            emailVerified: true,
+            displayName: 'Clerk Google',
+          };
+        },
+      },
+    });
+    await resetDb(db);
+    const res = await request(app)
+      .post('/api/v1/auth/clerk')
+      .set('X-Client', 'web')
+      .send({ sessionToken: 'sess_ok' })
+      .expect(200);
+    expect(res.body.data.user.email).toBe('clerk-google@example.com');
+    expect(res.body.data.user.emailVerifiedAt).toBeTruthy();
+    await db.$disconnect();
+  });
+});

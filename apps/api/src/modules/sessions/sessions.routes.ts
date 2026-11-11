@@ -19,8 +19,8 @@ import type { Env } from '../../config/env';
 import type { Database } from '../../lib/prisma';
 import {
   createRequireAuth,
+  createRequireVerifiedEmail,
   requireStaff,
-  requireVerifiedEmail,
   requireVerifiedPhone,
 } from '../../middleware/auth';
 import { requireIdempotency } from '../../middleware/idempotency';
@@ -34,6 +34,7 @@ import * as venues from '../venues/venues.service';
 export function createSessionsRouter(env: Env, db: Database, now: () => Date): Router {
   const router = Router();
   const requireAuth = createRequireAuth(env, db);
+  const requireVerifiedEmail = createRequireVerifiedEmail(env);
   const ctx = () => ({ db, now });
   const idemp = requireIdempotency(db);
 
