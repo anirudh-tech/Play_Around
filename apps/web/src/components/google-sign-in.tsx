@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/format';
 
 function GoogleSignInInner() {
-  const signIn = useSignIn();
+  const { signIn, fetchStatus } = useSignIn();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -16,16 +16,21 @@ function GoogleSignInInner() {
       <Button
         type="button"
         className="w-full"
-        disabled={pending || !signIn.isLoaded}
+        disabled={pending || fetchStatus === 'fetching'}
         onClick={() => {
-          if (!signIn.signIn) return;
           setPending(true);
           setError(null);
-          void signIn.signIn
-            .authenticateWithRedirect({
+          void signIn
+            .sso({
               strategy: 'oauth_google',
-              redirectUrl: '/sso-callback',
-              redirectUrlComplete: '/auth/bridge',
+              redirectUrl: '/auth/bridge',
+              redirectCallbackUrl: '/sso-callback',
+            })
+            .then((result) => {
+              if (result.error) {
+                setPending(false);
+                setError(result.error.message);
+              }
             })
             .catch((err: unknown) => {
               setPending(false);
