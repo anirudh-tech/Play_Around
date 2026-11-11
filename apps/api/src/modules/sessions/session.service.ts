@@ -97,10 +97,6 @@ async function countUpcoming(db: Database, organiserId: string, now: Date) {
 
 export async function createSession(ctx: SessionCtx, organiserId: string, input: CreateSessionBody) {
   const now = ctx.now();
-  const user = await ctx.db.user.findUnique({ where: { id: organiserId } });
-  if (!user?.phoneVerifiedAt) {
-    throw new AppError('PHONE_NOT_VERIFIED', 'Verify a phone number before publishing a session.');
-  }
   if ((await countUpcoming(ctx.db, organiserId, now)) >= SETTINGS['sessions.max_upcoming_organised']) {
     throw new AppError('ORGANISER_LIMIT_REACHED', 'You already have 10 upcoming sessions.');
   }

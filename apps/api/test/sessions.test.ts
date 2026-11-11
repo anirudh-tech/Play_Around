@@ -141,13 +141,13 @@ describe.skipIf(!dbUp)('sessions', () => {
     expect(list.body.data[0].contactPhone).toBeUndefined();
   });
 
-  it('rejects create without a verified phone and with a short lead time', async () => {
+  it('allows create without a verified phone and rejects a short lead time', async () => {
     const res = await request(app)
       .post('/api/v1/auth/register')
       .set('X-Client', 'ios')
       .send({ email: 'nophone@example.com', password: 'correcthorsebattery', displayName: 'No' })
       .expect(201);
-    const denied = await request(app)
+    const created = await request(app)
       .post('/api/v1/sessions')
       .set('Authorization', `Bearer ${res.body.data.accessToken}`)
       .set('Idempotency-Key', randomUUID())
@@ -159,8 +159,8 @@ describe.skipIf(!dbUp)('sessions', () => {
         capacity: 4,
         totalCostFils: 12000,
       })
-      .expect(403);
-    expect(denied.body.error.code).toBe('PHONE_NOT_VERIFIED');
+      .expect(201);
+    expect(created.body.data.id).toBeTruthy();
 
     const { accessToken } = await member('lead@example.com');
     const short = await request(app)

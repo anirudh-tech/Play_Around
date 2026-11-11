@@ -21,7 +21,6 @@ import {
   createRequireAuth,
   createRequireVerifiedEmail,
   requireStaff,
-  requireVerifiedPhone,
 } from '../../middleware/auth';
 import { requireIdempotency } from '../../middleware/idempotency';
 import { createNearbyLimiter } from '../../middleware/rate-limit';
@@ -73,7 +72,6 @@ export function createSessionsRouter(env: Env, db: Database, now: () => Date): R
   router.post(
     '/venues',
     requireAuth,
-    requireVerifiedPhone,
     validate({ body: CreateVenueBody }),
     async (_req, res) => {
       const body = res.locals.validated!.body as CreateVenueBody;
@@ -85,7 +83,6 @@ export function createSessionsRouter(env: Env, db: Database, now: () => Date): R
   router.post(
     '/sessions',
     requireAuth,
-    requireVerifiedPhone,
     idemp,
     validate({ body: CreateSessionBody }),
     async (_req, res) => {
