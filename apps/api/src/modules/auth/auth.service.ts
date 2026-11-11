@@ -11,7 +11,7 @@ import type { OauthVerifier, SocialProfile } from '../../lib/oauth';
 import { hashPassword, verifyPassword } from '../../lib/password';
 import type { Database } from '../../lib/prisma';
 import { signAccessToken } from '../../lib/tokens';
-import { ADMIN_REFRESH_COOKIE, isMobileClient, REFRESH_COOKIE } from '../../middleware/client';
+import { ADMIN_REFRESH_COOKIE, REFRESH_COOKIE } from '../../middleware/client';
 
 type UserRow = {
   id: string;
@@ -45,10 +45,13 @@ export interface AuthContext {
 }
 
 function cookieOpts(env: Env, maxAgeSeconds: number): CookieOptions {
+  // Web (Vercel) and API (Render) are different sites. Lax cookies are not
+  // sent on cross-origin fetch, so refresh would fail and clear the session.
+  const secure = env.COOKIE_SECURE || env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    secure: env.COOKIE_SECURE || env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure,
+    sameSite: secure ? 'none' : 'lax',
     path: '/',
     maxAge: maxAgeSeconds * 1000,
   };
@@ -127,7 +130,8 @@ export async function issueSession(
 
   return {
     accessToken: token,
-    refreshToken: isMobileClient(client) ? refresh : undefined,
+    // Always return the refresh token. Cross-origin web cannot rely on the cookie alone.
+    refreshToken: refresh,
     expiresIn,
     user: toAuthUser(user),
   };
@@ -194,7 +198,7 @@ export async function rotateRefresh(
   res.cookie(cookieName, next, cookieOpts(ctx.env, ttl));
   return {
     accessToken: token,
-    refreshToken: isMobileClient(client) ? next : undefined,
+    refreshToken: next,
     expiresIn,
     user: toAuthUser(user),
   };

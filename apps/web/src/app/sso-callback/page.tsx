@@ -14,7 +14,12 @@ export default function SsoCallbackPage() {
   return (
     <Chrome>
       <p className="text-sm text-text-muted">Finishing Google sign-in…</p>
-      <AuthenticateWithRedirectCallback />
+      <AuthenticateWithRedirectCallback
+        signInForceRedirectUrl="/auth/bridge"
+        signUpForceRedirectUrl="/auth/bridge"
+        signInFallbackRedirectUrl="/auth/bridge"
+        signUpFallbackRedirectUrl="/auth/bridge"
+      />
     </Chrome>
   );
 }

@@ -26,7 +26,11 @@ export function Providers({ children }: { children: ReactNode }) {
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   if (!publishableKey) return <AppProviders>{children}</AppProviders>;
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      signInFallbackRedirectUrl="/auth/bridge"
+      signUpFallbackRedirectUrl="/auth/bridge"
+    >
       <AppProviders>{children}</AppProviders>
     </ClerkProvider>
   );

@@ -20,14 +20,21 @@ export const useAuth = create<AuthState>((set) => ({
       set({ hydrated: true });
       return;
     }
-    set({ accessToken: window.localStorage.getItem('pa_access'), hydrated: true });
+    const stored = window.localStorage.getItem('pa_access');
+    set((state) => ({
+      accessToken: state.accessToken ?? stored,
+      hydrated: true,
+    }));
   },
   setSession: (input) => {
     if (typeof window !== 'undefined') {
-      if (!input) window.localStorage.removeItem('pa_access');
-      else window.localStorage.setItem('pa_access', input.accessToken);
-      if (input?.refreshToken) window.localStorage.setItem('pa_refresh', input.refreshToken);
-      if (!input) window.localStorage.removeItem('pa_refresh');
+      if (!input) {
+        window.localStorage.removeItem('pa_access');
+        window.localStorage.removeItem('pa_refresh');
+      } else {
+        window.localStorage.setItem('pa_access', input.accessToken);
+        if (input.refreshToken) window.localStorage.setItem('pa_refresh', input.refreshToken);
+      }
     }
     set({ accessToken: input?.accessToken ?? null, user: input?.user ?? null, hydrated: true });
   },

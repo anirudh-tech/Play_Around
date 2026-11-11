@@ -23,8 +23,8 @@ function GoogleSignInInner() {
           void signIn
             .sso({
               strategy: 'oauth_google',
-              redirectUrl: '/auth/bridge',
-              redirectCallbackUrl: '/sso-callback',
+              redirectUrl: `${window.location.origin}/auth/bridge`,
+              redirectCallbackUrl: `${window.location.origin}/sso-callback`,
             })
             .then((result) => {
               if (result.error) {

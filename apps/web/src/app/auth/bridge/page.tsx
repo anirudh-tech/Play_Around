@@ -17,10 +17,7 @@ function ClerkBridgeInner() {
 
   useEffect(() => {
     if (!isLoaded || started.current) return;
-    if (!isSignedIn) {
-      router.replace('/login');
-      return;
-    }
+    if (!isSignedIn) return;
     started.current = true;
     void (async () => {
       try {
@@ -34,10 +31,17 @@ function ClerkBridgeInner() {
         });
         router.replace('/discover');
       } catch (err) {
+        started.current = false;
         setError(errorMessage(err));
       }
     })();
   }, [getToken, isLoaded, isSignedIn, router, setSession]);
+
+  useEffect(() => {
+    if (!isLoaded || isSignedIn || started.current) return;
+    const timer = window.setTimeout(() => router.replace('/login'), 4000);
+    return () => window.clearTimeout(timer);
+  }, [isLoaded, isSignedIn, router]);
 
   return (
     <Chrome>
