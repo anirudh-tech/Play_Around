@@ -221,6 +221,10 @@ export async function createSport(db: Database, body: AdminSportBody) {
   if (body.minPlayers > body.maxPlayers || body.defaultPlayers < body.minPlayers || body.defaultPlayers > body.maxPlayers) {
     throw new AppError('VALIDATION_ERROR', 'Player bounds are invalid.');
   }
+  const taken = await db.sport.findUnique({ where: { slug: body.slug } });
+  if (taken) {
+    throw new AppError('VALIDATION_ERROR', 'A sport with that slug already exists.');
+  }
   return db.sport.create({
     data: {
       slug: body.slug,
