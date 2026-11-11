@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { errorMessage } from '@/lib/format';
 
-export default function ClerkBridgePage() {
+function ClerkBridgeInner() {
   const router = useRouter();
   const { getToken, isLoaded, isSignedIn } = useClerkAuth();
   const setSession = useAuth((s) => s.setSession);
@@ -44,4 +44,15 @@ export default function ClerkBridgePage() {
       <p className="text-sm text-text-muted">{error ?? 'Signing you into PlayAround…'}</p>
     </Chrome>
   );
+}
+
+export default function ClerkBridgePage() {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+    return (
+      <Chrome>
+        <p className="text-sm text-text-muted">Clerk is not configured.</p>
+      </Chrome>
+    );
+  }
+  return <ClerkBridgeInner />;
 }
